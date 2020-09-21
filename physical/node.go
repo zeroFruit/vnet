@@ -26,6 +26,7 @@ func IdOf(name string) Id {
 	}
 }
 
+// TODO: should move to other layer
 type IP string
 
 type HardwareAddr string
