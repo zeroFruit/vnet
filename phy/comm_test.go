@@ -1,21 +1,21 @@
-package physical_test
+package phy_test
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/zeroFruit/vnet/physical"
+	"github.com/zeroFruit/vnet/phy"
 )
 
 func TestDatagramTransport(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	sender, err := physical.NewNetworkAdapter("127.0.0.1", 40000)
+	sender, err := phy.NewNetworkAdapter("127.0.0.1", 40000)
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}
-	receiver, err := physical.NewNetworkAdapter("127.0.0.1", 40001)
+	receiver, err := phy.NewNetworkAdapter("127.0.0.1", 40001)
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}

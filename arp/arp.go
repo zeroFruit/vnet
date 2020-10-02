@@ -1,30 +1,21 @@
 package arp
 
-import "github.com/zeroFruit/vnet/physical"
+type Interface interface {
+}
 
-type HardwareType uint16
+type Node interface {
+	Interfaces() []Interface
+}
 
-const Ethernet HardwareType = 1
+type Service struct {
+	self  Node
+	table Table
+}
 
-type ProtocolType uint16
+func (s *Service) Broadcast() error {
+	return nil
+}
 
-const IPV4 = 0x800
-
-type Operation uint16
-
-const (
-	Req   Operation = 1
-	Reply           = 2
-)
-
-type Payload struct {
-	HType HardwareType
-	PType ProtocolType
-	HLen  uint8
-	PLen  uint8
-	Op    Operation
-	SHA   physical.HardwareAddr
-	SPA   physical.IP
-	THA   physical.HardwareAddr
-	TPA   physical.IP
+func (s *Service) Reply() error {
+	return nil
 }

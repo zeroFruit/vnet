@@ -1,12 +1,14 @@
-package physical
+package phy
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
+
+	"github.com/zeroFruit/vnet/phy/internal"
 )
 
-const defaultIP IP = "127.0.0.1"
+const defaultIP internal.Addr = "127.0.0.1"
 
 type Id struct {
 	Name string
@@ -26,10 +28,7 @@ func IdOf(name string) Id {
 	}
 }
 
-// TODO: should move to other layer
-type IP string
-
-type HardwareAddr string
+type Addr string
 
 type Link struct {
 	id    Id
@@ -79,17 +78,17 @@ func (l *Link) GetOtherInterface(intfId Id) (Interface, error) {
 
 type Interface struct {
 	id         Id
-	ip         IP
-	internalIP IP
+	ip         internal.Addr
+	internalIP internal.Addr
 	port       int
-	hwAddr     HardwareAddr
+	hwAddr     Addr
 	link       *Link
 	adapter    NetworkAdapter
 	dataSink   chan<- *Datagram
 	quit       chan struct{}
 }
 
-func NewInterface(id string, ip IP, port int, hwAddr HardwareAddr, dataSink chan<- *Datagram) *Interface {
+func NewInterface(id string, ip internal.Addr, port int, hwAddr Addr, dataSink chan<- *Datagram) *Interface {
 	intf := &Interface{
 		id:         IdOf(id),
 		ip:         ip,
