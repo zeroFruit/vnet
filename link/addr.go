@@ -1,4 +1,4 @@
-package net
+package link
 
 type Addr string
 
@@ -9,3 +9,5 @@ func (a Addr) Equal(o Addr) bool {
 func (a Addr) String() string {
 	return string(a)
 }
+
+const BroadcastAddr Addr = "FF:FF:FF:FF:FF:FF"

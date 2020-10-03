@@ -1,4 +1,4 @@
-package phy
+package link
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeroFruit/vnet/phy/internal"
+	"github.com/zeroFruit/vnet/link/internal"
 )
 
 const (
