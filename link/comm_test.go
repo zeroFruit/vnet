@@ -1,25 +1,34 @@
+<<<<<<< HEAD:phy/comm_test.go
 <<<<<<< HEAD:pkg/link/comm_test.go
 package link_test
 =======
 package phy_test
 >>>>>>> 18e4a4c... feat: add arp table, separate net address:phy/comm_test.go
+=======
+package link_test
+>>>>>>> 6a51a9b... feat: remove phy package and migrate to link:link/comm_test.go
 
 import (
 	"sync"
 	"testing"
 	"time"
 
+<<<<<<< HEAD:phy/comm_test.go
 <<<<<<< HEAD:pkg/link/comm_test.go
 	"github.com/zeroFruit/vnet/pkg/link"
 =======
 	"github.com/zeroFruit/vnet/phy"
 >>>>>>> 18e4a4c... feat: add arp table, separate net address:phy/comm_test.go
+=======
+	"github.com/zeroFruit/vnet/link"
+>>>>>>> 6a51a9b... feat: remove phy package and migrate to link:link/comm_test.go
 )
 
 func TestDatagramTransport(t *testing.T) {
 	t.Skip()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
+<<<<<<< HEAD:phy/comm_test.go
 <<<<<<< HEAD:pkg/link/comm_test.go
 	sender, err := link.NewNetworkAdapter("127.0.0.1", 40000)
 	if err != nil {
@@ -33,6 +42,13 @@ func TestDatagramTransport(t *testing.T) {
 	}
 	receiver, err := phy.NewNetworkAdapter("127.0.0.1", 40001)
 >>>>>>> 18e4a4c... feat: add arp table, separate net address:phy/comm_test.go
+=======
+	sender, err := link.NewNetworkAdapter("127.0.0.1", 40000)
+	if err != nil {
+		t.Fatalf("failed to create network adapter: %v", err)
+	}
+	receiver, err := link.NewNetworkAdapter("127.0.0.1", 40001)
+>>>>>>> 6a51a9b... feat: remove phy package and migrate to link:link/comm_test.go
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}
