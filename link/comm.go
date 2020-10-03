@@ -1,8 +1,12 @@
+<<<<<<< HEAD:phy/comm.go
 <<<<<<< HEAD:pkg/link/comm.go
 package link
 =======
 package phy
 >>>>>>> 18e4a4c... feat: add arp table, separate net address:phy/comm.go
+=======
+package link
+>>>>>>> 6a51a9b... feat: remove phy package and migrate to link:link/comm.go
 
 import (
 	"fmt"
@@ -10,11 +14,15 @@ import (
 	"sync"
 	"time"
 
+<<<<<<< HEAD:phy/comm.go
 <<<<<<< HEAD:pkg/link/comm.go
 	"github.com/zeroFruit/vnet/pkg/link/internal"
 =======
 	"github.com/zeroFruit/vnet/phy/internal"
 >>>>>>> 18e4a4c... feat: add arp table, separate net address:phy/comm.go
+=======
+	"github.com/zeroFruit/vnet/link/internal"
+>>>>>>> 6a51a9b... feat: remove phy package and migrate to link:link/comm.go
 )
 
 const (
