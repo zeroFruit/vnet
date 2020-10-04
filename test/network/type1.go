@@ -3,7 +3,7 @@ package network
 import (
 	"fmt"
 
-	"github.com/zeroFruit/vnet/link"
+	"github.com/zeroFruit/vnet/pkg/link"
 )
 
 func attachInterface(node *link.Node, itf link.Interface) {
@@ -16,6 +16,32 @@ func attachLink(itf link.Interface, link *link.Link) {
 	}
 }
 
+/*
+     +-----------------+
+     |                 |
+     |                 |11-11-11-11-11-11
+     |      Node 1     ----------------------------------+
+     |                 |                                 |
+     |                 |                                 |
+     +--------|--------+                                 |
+              |11-11-11-11-11-12                         |
+              |                                          |11-11-11-11-11-13
+              |                                 +--------|--------+
+              |                                 |                 |
+              |                                 |                 |
+              |                                 |      Node 2     |
+              |                                 |                 |
+              |                                 |                 |
+              |                                 +--------|--------+
+              |                                          11-11-11-11-11-14
+              |      +-----------------+                 |
+              |      |                 |                 |
+              |      |                 |                 |
+              +-------     Node 3     -------------------+
+   11-11-11-11-11-16 |                 |11-11-11-11-11-15
+                     |                 |
+                     +-----------------+
+*/
 func Type1() (node1 *link.Node, node2 *link.Node, node3 *link.Node) {
 	// setup node
 	node1 = link.NewNode()
@@ -23,18 +49,18 @@ func Type1() (node1 *link.Node, node2 *link.Node, node3 *link.Node) {
 	node3 = link.NewNode()
 
 	// setup interface
-	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", node1.DataSink())
-	intf2 := link.NewInterface(40002, "11-11-11-11-11-12", node1.DataSink())
+	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", node1)
+	intf2 := link.NewInterface(40002, "11-11-11-11-11-12", node1)
 	attachInterface(node1, intf1)
 	attachInterface(node1, intf2)
 
-	intf3 := link.NewInterface(40003, "11-11-11-11-11-13", node2.DataSink())
-	intf4 := link.NewInterface(40004, "11-11-11-11-11-14", node2.DataSink())
+	intf3 := link.NewInterface(40003, "11-11-11-11-11-13", node2)
+	intf4 := link.NewInterface(40004, "11-11-11-11-11-14", node2)
 	attachInterface(node2, intf3)
 	attachInterface(node2, intf4)
 
-	intf5 := link.NewInterface(40005, "11-11-11-11-11-15", node3.DataSink())
-	intf6 := link.NewInterface(40006, "11-11-11-11-11-16", node3.DataSink())
+	intf5 := link.NewInterface(40005, "11-11-11-11-11-15", node3)
+	intf6 := link.NewInterface(40006, "11-11-11-11-11-16", node3)
 	attachInterface(node3, intf5)
 	attachInterface(node3, intf6)
 
