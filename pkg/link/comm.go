@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeroFruit/vnet/link/internal"
+	"github.com/zeroFruit/vnet/pkg/link/internal"
 )
 
 const (

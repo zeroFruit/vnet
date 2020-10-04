@@ -1,20 +1,19 @@
 package arp
 
 import (
-	"github.com/zeroFruit/vnet/link"
-	"github.com/zeroFruit/vnet/net"
+	"github.com/zeroFruit/vnet/pkg/types"
 )
 
 type Key struct {
-	NetAddr net.Addr
+	NetAddr types.NetAddr
 }
 
 type Entry struct {
-	NetAddr net.Addr
-	HwAddr  link.Addr
+	NetAddr types.NetAddr
+	HwAddr  types.HwAddr
 }
 
-func KeyValue(na net.Addr, ha link.Addr) (Key, Entry) {
+func KeyValue(na types.NetAddr, ha types.HwAddr) (Key, Entry) {
 	return Key{NetAddr: na}, Entry{NetAddr: na, HwAddr: ha}
 }
 

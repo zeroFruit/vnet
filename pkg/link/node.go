@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/zeroFruit/vnet/link/internal"
+	"github.com/zeroFruit/vnet/pkg/link/internal"
 )
 
 type Link struct {
@@ -51,7 +51,7 @@ func (l *Link) GetOtherInterface(addr Addr) (LinkInterface, error) {
 type Interface interface {
 	GetLink() *Link
 	AttachLink(link *Link) error
-	Send(buf []byte) error
+	Send(pkt []byte) error
 	Address() Addr
 }
 
@@ -60,22 +60,26 @@ type LinkInterface interface {
 	InternalAddress() Addr
 }
 
+type DatagramHandler interface {
+	handle(datagram *Datagram) error
+}
+
 type UDPBasedInterface struct {
 	internalIP   internal.Addr
 	internalPort int
 	Addr         Addr
 	link         *Link
 	adapter      NetworkAdapter
-	dataSink     chan<- *Datagram
+	handler      DatagramHandler
 	quit         chan struct{}
 }
 
-func NewInterface(port int, hwAddr Addr, dataSink chan<- *Datagram) Interface {
+func NewInterface(port int, hwAddr Addr, handler DatagramHandler) Interface {
 	itf := &UDPBasedInterface{
 		internalPort: port,
 		internalIP:   internal.DefaultAddr,
 		Addr:         hwAddr,
-		dataSink:     dataSink,
+		handler:      handler,
 		quit:         make(chan struct{}),
 	}
 	return itf
@@ -116,7 +120,7 @@ func (i *UDPBasedInterface) sink() {
 		select {
 		case data := <-i.adapter.Recv():
 			data.From = i.Addr.String()
-			i.dataSink <- data
+			i.handler.handle(data)
 		case <-i.quit:
 			return
 		}
@@ -147,7 +151,6 @@ func NewNode() *Node {
 		quit:    make(chan struct{}),
 		ItfList: make([]Interface, 0),
 	}
-	go n.listen()
 	return n
 }
 
@@ -179,20 +182,8 @@ func (n *Node) Send(addr Addr, pkt []byte) error {
 	return nil
 }
 
-func (n *Node) listen() {
-	for {
-		select {
-		case data := <-n.dataCh:
-			// TODO: error handling
-			n.handleData(data)
-		case <-n.quit:
-			return
-		}
-	}
-}
-
 // TODO: implement me
-func (n *Node) handleData(data *Datagram) error {
+func (n *Node) handle(data *Datagram) error {
 	return nil
 }
 

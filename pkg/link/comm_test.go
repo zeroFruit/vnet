@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zeroFruit/vnet/link"
+	"github.com/zeroFruit/vnet/pkg/link"
 )
 
 func TestDatagramTransport(t *testing.T) {

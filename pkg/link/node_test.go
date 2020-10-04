@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zeroFruit/vnet/link"
+	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-// TODO: close UDP connection
 func TestNetworkTopology(t *testing.T) {
 	// setup node
 	node1 := link.NewNode()
@@ -16,18 +15,18 @@ func TestNetworkTopology(t *testing.T) {
 	node3 := link.NewNode()
 
 	// setup interface
-	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", node1.DataSink())
-	intf2 := link.NewInterface(40002, "11-11-11-11-11-12", node1.DataSink())
+	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", node1)
+	intf2 := link.NewInterface(40002, "11-11-11-11-11-12", node1)
 	attachInterface(t, node1, intf1)
 	attachInterface(t, node1, intf2)
 
-	intf3 := link.NewInterface(40003, "11-11-11-11-11-13", node2.DataSink())
-	intf4 := link.NewInterface(40004, "11-11-11-11-11-14", node2.DataSink())
+	intf3 := link.NewInterface(40003, "11-11-11-11-11-13", node2)
+	intf4 := link.NewInterface(40004, "11-11-11-11-11-14", node2)
 	attachInterface(t, node2, intf3)
 	attachInterface(t, node2, intf4)
 
-	intf5 := link.NewInterface(40005, "11-11-11-11-11-15", node3.DataSink())
-	intf6 := link.NewInterface(40006, "11-11-11-11-11-16", node3.DataSink())
+	intf5 := link.NewInterface(40005, "11-11-11-11-11-15", node3)
+	intf6 := link.NewInterface(40006, "11-11-11-11-11-16", node3)
 	attachInterface(t, node3, intf5)
 	attachInterface(t, node3, intf6)
 
@@ -68,10 +67,10 @@ func TestNodeSendReceive(t *testing.T) {
 		sender.Shutdown()
 	}()
 
-	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", sender.DataSink())
+	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", sender)
 	attachInterface(t, sender, intf1)
 
-	intf2 := link.NewInterface(40002, "11-11-11-11-11-13", receiver.DataSink())
+	intf2 := link.NewInterface(40002, "11-11-11-11-11-13", receiver)
 	attachInterface(t, receiver, intf2)
 
 	link1 := link.NewLink(1)

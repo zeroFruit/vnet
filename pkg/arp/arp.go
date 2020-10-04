@@ -1,37 +1,36 @@
 package arp
 
 import (
-	"github.com/zeroFruit/vnet/net"
+	"github.com/zeroFruit/vnet/pkg/types"
 )
 
 type Service interface {
-	Broadcast(tna net.Addr) []error
+	Broadcast(tna types.NetAddr) []error
 	Reply() error
 	Recv(payload Payload)
 }
 
 type service struct {
-	self  Node
+	self  *AdaptedNode
 	table *Table
 }
 
-func New(node Node) *service {
+func New(node *AdaptedNode) Service {
 	return &service{
 		self:  node,
 		table: NewTable(),
 	}
 }
 
-func NewWithTable(node Node, table *Table) *service {
+func NewWithTable(node *AdaptedNode, table *Table) Service {
 	return &service{
 		self:  node,
 		table: table,
 	}
 }
 
-func (s *service) Broadcast(tna net.Addr) []error {
+func (s *service) Broadcast(tna types.NetAddr) []error {
 	errs := make([]error, 0)
-
 	// FIXME: selectively choose interface depending on the target network address
 	for _, itf := range s.self.Interfaces() {
 		payload := Request(itf.HwAddr(), itf.NetAddr(), tna)
