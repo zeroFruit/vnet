@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/zeroFruit/vnet/utils"
+	"github.com/zeroFruit/vnet/pkg/utils"
 )
 
 func TestUintToByteSlice(t *testing.T) {
