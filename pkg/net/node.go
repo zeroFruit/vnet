@@ -1,7 +1,11 @@
 package net
 
 import (
+	"errors"
 	"fmt"
+	"log"
+
+	"github.com/zeroFruit/vnet/pkg/arp"
 
 	"github.com/zeroFruit/vnet/pkg/types"
 
@@ -35,12 +39,15 @@ func (i *Interface) Send(pkt []byte) error {
 type Node struct {
 	hw      *link.Node
 	ItfList []*Interface
+	arp     arp.Service
+	decoder arp.PayloadDecoder
 }
 
 func NewNode(hw *link.Node) *Node {
 	return &Node{
 		hw:      hw,
 		ItfList: make([]*Interface, 0),
+		decoder: NewArpPayloadDecoder(),
 	}
 }
 
@@ -103,4 +110,25 @@ func (n *Node) Interfaces() []types.NetInterface {
 		r = append(r, types.NetInterface(itf))
 	}
 	return r
+}
+
+func (n *Node) RegisterArp(arp arp.Service) {
+	n.arp = arp
+}
+
+func (n *Node) Handle(data *link.Datagram) {
+	payload, err := n.decoder.Decode(data.Buf)
+	if err == nil {
+		if err := n.handleArp(payload); err != nil {
+			log.Fatalf("failed to handle ARP packet: %v", err)
+		}
+	}
+	// handle other protocol packet
+}
+
+func (n *Node) handleArp(payload arp.Payload) error {
+	if n.arp == nil {
+		return errors.New("ARP module not registered")
+	}
+	return n.arp.Recv(payload)
 }

@@ -9,6 +9,7 @@ import (
 )
 
 func TestNetworkTopology(t *testing.T) {
+	t.Skip()
 	// setup node
 	node1 := link.NewNode()
 	node2 := link.NewNode()
@@ -56,6 +57,7 @@ func TestNetworkTopology(t *testing.T) {
 // TODO: close UDP connection
 // TODO: this test should moved to `test/` package
 func TestNodeSendReceive(t *testing.T) {
+	t.Skip()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 

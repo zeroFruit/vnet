@@ -1,12 +1,6 @@
 package arp
 
 import (
-	"bytes"
-	"encoding/gob"
-	"fmt"
-
-	"github.com/zeroFruit/vnet/pkg/net"
-
 	"github.com/zeroFruit/vnet/pkg/types"
 
 	"github.com/zeroFruit/vnet/pkg/link"
@@ -63,20 +57,10 @@ func Response(sha types.HwAddr, sna types.NetAddr, tha types.HwAddr, tna types.N
 	}
 }
 
-func (p Payload) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	gob.Register(link.Addr(""))
-	gob.Register(net.Addr(""))
-	if err := gob.NewEncoder(&buf).Encode(p); err != nil {
-		return nil, fmt.Errorf("failed to encode ARP payload: %v", err)
-	}
-	return buf.Bytes(), nil
+type PayloadEncoder interface {
+	Encode(payload Payload) ([]byte, error)
 }
 
-func DecodePayload(b []byte) (Payload, error) {
-	var payload Payload
-	if err := gob.NewDecoder(bytes.NewBuffer(b)).Decode(&payload); err != nil {
-		return Payload{}, fmt.Errorf("failed to decode ARP payload: %v", err)
-	}
-	return payload, nil
+type PayloadDecoder interface {
+	Decode(b []byte) (Payload, error)
 }

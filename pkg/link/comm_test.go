@@ -9,6 +9,7 @@ import (
 )
 
 func TestDatagramTransport(t *testing.T) {
+	t.Skip()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	sender, err := link.NewNetworkAdapter("127.0.0.1", 40000)

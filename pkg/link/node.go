@@ -3,6 +3,7 @@ package link
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/zeroFruit/vnet/pkg/link/internal"
@@ -120,7 +121,9 @@ func (i *UDPBasedInterface) sink() {
 		select {
 		case data := <-i.adapter.Recv():
 			data.From = i.Addr.String()
-			i.handler.handle(data)
+			if err := i.handler.handle(data); err != nil {
+				log.Fatal(err)
+			}
 		case <-i.quit:
 			return
 		}
@@ -139,19 +142,29 @@ func (i *UDPBasedInterface) shutdown() {
 	i.quit <- struct{}{}
 }
 
+type NetDatagramHandler interface {
+	Handle(data *Datagram)
+}
+
 type Node struct {
-	dataCh  chan *Datagram
-	quit    chan struct{}
-	ItfList []Interface
+	dataCh     chan *Datagram
+	quit       chan struct{}
+	ItfList    []Interface
+	netHandler NetDatagramHandler
 }
 
 func NewNode() *Node {
 	n := &Node{
-		dataCh:  make(chan *Datagram), // TODO: set the buffer
-		quit:    make(chan struct{}),
-		ItfList: make([]Interface, 0),
+		dataCh:     make(chan *Datagram), // TODO: set the buffer
+		quit:       make(chan struct{}),
+		ItfList:    make([]Interface, 0),
+		netHandler: nil,
 	}
 	return n
+}
+
+func (n *Node) RegisterNetHandler(handler NetDatagramHandler) {
+	n.netHandler = handler
 }
 
 func (n *Node) AttachInterface(itf Interface) {
@@ -182,8 +195,11 @@ func (n *Node) Send(addr Addr, pkt []byte) error {
 	return nil
 }
 
-// TODO: implement me
 func (n *Node) handle(data *Datagram) error {
+	if n.netHandler == nil {
+		return errors.New("net handler is not registered")
+	}
+	n.netHandler.Handle(data)
 	return nil
 }
 

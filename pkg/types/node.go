@@ -5,3 +5,7 @@ type NetInterface interface {
 	HwAddress() HwAddr
 	NetAddress() NetAddr
 }
+
+type NetNode interface {
+	Interfaces() []NetInterface
+}
