@@ -11,69 +11,50 @@ import (
 )
 
 /*
-     +-----------------+
-     |                 |
-     |                 |11-11-11-11-11-11
-     |      Node 1     ----------------------------------+
-     |                 | NetAddr: 1.1.1.1                |
-     |                 |                                 |
-     +--------|--------+                                 |
-              | 11-11-11-11-11-12                        |
-              | NetAddr: 1.1.1.2                         | 11-11-11-11-11-13
-              |                                          | NetAddr: 2.2.2.1
-              |                                 +--------|--------+
-              |                                 |                 |
-              |                                 |                 |
-              |                                 |      Node 2     |
-              |                                 |                 |
-              |                                 |                 |
-              |                                 +--------|--------+
-              |
-              |      +-----------------+
-              |      |                 |
-              |      |                 |
-              +-------     Node 3     --
-   11-11-11-11-11-16 |                 |
-	NetAddr: 3.3.3.1 |                 |
-                     +-----------------+
+
+        1.1.1.1                            1.1.1.2
+   11-11-11-11-11-11                  11-11-11-11-11-12
+       +-------+                          +-------+
+       | node1 ---------------------------- node2 |
+       |       |                          |       |
+       +-------+                          +-------+
 */
 func main() {
-	node1, node2, node3 := network.Type1()
+	node1, node2 := network.Type1()
 
 	net1 := net.NewNode(node1)
 	net2 := net.NewNode(node2)
-	net3 := net.NewNode(node3)
+
+	node1.RegisterNetHandler(net1)
+	node2.RegisterNetHandler(net2)
 
 	for _, fn := range [](func() error){
 		func() error {
 			return net1.UpdateAddr(link.AddrFromStr("11-11-11-11-11-11"), net.AddrFromStr("1.1.1.1"))
 		},
 		func() error {
-			return net1.UpdateAddr(link.AddrFromStr("11-11-11-11-11-12"), net.AddrFromStr("1.1.1.2"))
-		},
-		func() error {
-			return net2.UpdateAddr(link.AddrFromStr("11-11-11-11-11-13"), net.AddrFromStr("2.2.2.1"))
-		},
-		func() error {
-			return net3.UpdateAddr(link.AddrFromStr("11-11-11-11-11-16"), net.AddrFromStr("3.3.3.1"))
+			return net2.UpdateAddr(link.AddrFromStr("11-11-11-11-11-12"), net.AddrFromStr("1.1.1.2"))
 		},
 	} {
 		ShouldSuccess(fn)
 	}
 
-	svc1 := arp.New(arp.AdaptNode(net1))
-	arp.New(arp.AdaptNode(net2))
-	arp.New(arp.AdaptNode(net3))
+	arp1 := arp.New(net1, net.NewArpPayloadEncoder())
+	arp2 := arp.New(net2, net.NewArpPayloadEncoder())
 
-	errs := svc1.Broadcast(net.AddrFromStr("2.2.2.1"))
+	net1.RegisterArp(arp1)
+	net2.RegisterArp(arp2)
+
+	errs := arp1.Broadcast(net.AddrFromStr("1.1.1.2"))
 	if len(errs) != 0 {
 		Fatalf("expected errors when broadcast is 0 but got %d", len(errs))
 	}
 	time.Sleep(3 * time.Second)
+	// TODO: write test harassment
 }
 
 func Fatalf(format string, a ...interface{}) {
-	panic(fmt.Sprintf(format, a))
+	panic(fmt.Sprintf(format, a...))
 }
 
 func ShouldSuccess(fn func() error) {
