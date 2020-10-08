@@ -1,10 +1,12 @@
-package physical
+package link
 
 import (
 	"fmt"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/zeroFruit/vnet/pkg/link/internal"
 )
 
 const (
@@ -20,7 +22,7 @@ const (
 type Datagram struct {
 	Buf          []byte
 	From         string
-	HardwareAddr HardwareAddr
+	HardwareAddr Addr
 	Timestamp    time.Time
 }
 
@@ -35,7 +37,7 @@ type NetworkAdapter interface {
 }
 
 type UDPTransport struct {
-	ip         IP
+	ip         internal.Addr
 	port       int
 	packetCh   chan *Datagram
 	packetConn packetConn
@@ -43,7 +45,7 @@ type UDPTransport struct {
 	lock       sync.RWMutex
 }
 
-func ListenDatagram(ip IP, port int) (*net.UDPConn, error) {
+func ListenDatagram(ip internal.Addr, port int) (*net.UDPConn, error) {
 	udpAddr := &net.UDPAddr{
 		IP:   net.ParseIP(string(ip)),
 		Port: port,
@@ -58,7 +60,7 @@ func ListenDatagram(ip IP, port int) (*net.UDPConn, error) {
 	return udpConn, nil
 }
 
-func NewNetworkAdapter(ip IP, port int) (*UDPTransport, error) {
+func NewNetworkAdapter(ip internal.Addr, port int) (*UDPTransport, error) {
 	pc, err := ListenDatagram(ip, port)
 	if err != nil {
 		return nil, err
