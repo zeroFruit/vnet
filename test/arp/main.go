@@ -7,7 +7,7 @@ import (
 	"github.com/zeroFruit/vnet/pkg/arp"
 	"github.com/zeroFruit/vnet/pkg/link"
 	"github.com/zeroFruit/vnet/pkg/net"
-	"github.com/zeroFruit/vnet/test/network"
+	"github.com/zeroFruit/vnet/tools/network"
 )
 
 /*
@@ -28,7 +28,7 @@ func main() {
 	node1.RegisterNetHandler(net1)
 	node2.RegisterNetHandler(net2)
 
-	for _, fn := range [](func() error){
+	for _, fn := range []func() error{
 		func() error {
 			return net1.UpdateAddr(link.AddrFromStr("11-11-11-11-11-11"), net.AddrFromStr("1.1.1.1"))
 		},
@@ -39,7 +39,8 @@ func main() {
 		ShouldSuccess(fn)
 	}
 
-	arp1 := arp.New(net1, net.NewArpPayloadEncoder())
+	table := arp.NewTable()
+	arp1 := arp.NewWithTable(net1, net.NewArpPayloadEncoder(), table)
 	arp2 := arp.New(net2, net.NewArpPayloadEncoder())
 
 	net1.RegisterArp(arp1)
@@ -49,8 +50,16 @@ func main() {
 	if len(errs) != 0 {
 		Fatalf("expected errors when broadcast is 0 but got %d", len(errs))
 	}
-	time.Sleep(3 * time.Second)
-	// TODO: write test harassment
+
+	time.Sleep(1 * time.Second)
+
+	entry, ok := table.Lookup(arp.Key{NetAddr: net.AddrFromStr("1.1.1.2")})
+	if !ok {
+		Fatalf("net address not exist on table")
+	}
+	if !entry.HwAddr.Equal(link.AddrFromStr("11-11-11-11-11-12")) {
+		Fatalf("expected hw address is '11-11-11-11-11-12', but got '%s'", entry.HwAddr)
+	}
 }
 
 func Fatalf(format string, a ...interface{}) {
