@@ -1,9 +1,9 @@
-package utils_test
+package binary_test
 
 import (
 	"testing"
 
-	"github.com/zeroFruit/vnet/pkg/utils"
+	"github.com/zeroFruit/vnet/pkg/binary"
 )
 
 func TestUintToByteSlice(t *testing.T) {
@@ -12,8 +12,8 @@ func TestUintToByteSlice(t *testing.T) {
 		1002,
 	}
 	for _, num := range data {
-		r := utils.Uint16ToByteSlice(num)
-		result := utils.ByteSliceToUint16(r)
+		r := binary.FromUint16(num)
+		result := binary.ToUint16(r)
 		if result != num {
 			t.Fatalf("expected num value is %d, but got %d", num, result)
 		}

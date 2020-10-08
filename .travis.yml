@@ -1,0 +1,28 @@
+language: go
+
+go:
+  - '1.14'
+
+notifications:
+  email: false
+
+git:
+  depth: 1
+
+os: linux
+
+jobs:
+  include:
+    - stage: style
+      script: |
+        diff <(goimports -d $(find . -type f -name '*.go' -not -path "*/vendor/*")) <(printf "")
+        if [ $? -ne 0 ]; then
+          echo "goimports format error" >&2
+          exit 1
+        fi
+    - stage: anaylsis
+      script: |
+        go vet ./...
+    - stage: test
+      script: |
+        go test -race -cover ./...
