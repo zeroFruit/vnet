@@ -6,9 +6,6 @@ go:
 notifications:
   email: false
 
-git:
-  depth: 1
-
 os: linux
 
 jobs:
@@ -23,6 +20,12 @@ jobs:
     - stage: anaylsis
       script: |
         go vet ./...
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
     - stage: test
       script: |
         go test -race -cover ./...
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
