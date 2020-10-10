@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/zeroFruit/vnet/pkg/link/na"
+
 	"github.com/zeroFruit/vnet/pkg/arp"
 
 	"github.com/zeroFruit/vnet/pkg/types"
@@ -14,10 +16,10 @@ import (
 
 type Interface struct {
 	Addr types.NetAddr
-	hw   link.Interface
+	hw   link.AnonymInterface
 }
 
-func NewInterface(hw link.Interface, addr types.NetAddr) *Interface {
+func NewInterface(hw link.AnonymInterface, addr types.NetAddr) *Interface {
 	return &Interface{
 		Addr: addr,
 		hw:   hw,
@@ -112,8 +114,13 @@ func (n *Node) RegisterArp(arp arp.Service) {
 	n.arp = arp
 }
 
+<<<<<<< HEAD
 func (n *Node) Handle(pl []byte) {
 	payload, err := n.plDec.Decode(pl)
+=======
+func (n *Node) Handle(data *na.Datagram) {
+	payload, err := n.decoder.Decode(data.Buf)
+>>>>>>> 5ca1354... feat: implement Switch basic functions
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)
