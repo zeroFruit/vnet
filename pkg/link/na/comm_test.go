@@ -1,22 +1,22 @@
-package link_test
+package na_test
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/zeroFruit/vnet/pkg/link"
+	"github.com/zeroFruit/vnet/pkg/link/na"
 )
 
 func TestDatagramTransport(t *testing.T) {
 	t.Skip()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	sender, err := link.NewNetworkAdapter("127.0.0.1", 40000)
+	sender, err := na.New("127.0.0.1", 40000)
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}
-	receiver, err := link.NewNetworkAdapter("127.0.0.1", 40001)
+	receiver, err := na.New("127.0.0.1", 40001)
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}

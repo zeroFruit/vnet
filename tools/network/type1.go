@@ -6,11 +6,11 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-func attachInterface(node *link.Node, itf link.Interface) {
+func attachInterface(node *link.Node, itf link.AnonymInterface) {
 	node.AttachInterface(itf)
 }
 
-func attachLink(itf link.Interface, link *link.Link) {
+func attachLink(itf link.AnonymInterface, link *link.Link) {
 	if err := itf.AttachLink(link); err != nil {
 		panic(fmt.Sprintf("failed to attach link: %v", err))
 	}

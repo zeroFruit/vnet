@@ -5,8 +5,9 @@ import (
 	"encoding/gob"
 	"fmt"
 
-	"github.com/zeroFruit/vnet/pkg/arp"
 	"github.com/zeroFruit/vnet/pkg/link"
+
+	"github.com/zeroFruit/vnet/pkg/arp"
 )
 
 type ArpPayloadEncoder struct {

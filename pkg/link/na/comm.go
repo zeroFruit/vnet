@@ -1,10 +1,12 @@
-package link
+package na
 
 import (
 	"fmt"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/zeroFruit/vnet/pkg/types"
 
 	"github.com/zeroFruit/vnet/pkg/link/internal"
 )
@@ -19,10 +21,11 @@ const (
 	udpRecvBufSize = 2 * 1024 * 1024
 )
 
+// Datagram represents the packets of receiver
 type Datagram struct {
 	Buf          []byte
 	From         string
-	HardwareAddr Addr
+	HardwareAddr types.HwAddr
 	Timestamp    time.Time
 }
 
@@ -31,7 +34,7 @@ type packetConn interface {
 	WriteTo(p []byte, addr net.Addr) (n int, err error)
 }
 
-type NetworkAdapter interface {
+type Card interface {
 	Send(buf []byte, addr string) (time.Time, error)
 	Recv() <-chan *Datagram
 }
@@ -60,7 +63,7 @@ func ListenDatagram(ip internal.Addr, port int) (*net.UDPConn, error) {
 	return udpConn, nil
 }
 
-func NewNetworkAdapter(ip internal.Addr, port int) (*UDPTransport, error) {
+func New(ip internal.Addr, port int) (*UDPTransport, error) {
 	pc, err := ListenDatagram(ip, port)
 	if err != nil {
 		return nil, err
@@ -105,7 +108,7 @@ func (p *UDPTransport) Recv() <-chan *Datagram {
 }
 
 func (p *UDPTransport) Send(buf []byte, addr string) (time.Time, error) {
-	udpAddr, err := net.ResolveUDPAddr("udp", string(addr))
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return time.Time{}, err
 	}
