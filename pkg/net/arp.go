@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-
 	"github.com/zeroFruit/vnet/pkg/link"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
 )
 
+<<<<<<< HEAD
 type ArpPayloadEncoder struct{}
+=======
+type ArpPayloadEncoder struct {}
+>>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
 
 func NewArpPayloadEncoder() *ArpPayloadEncoder {
 	gob.Register(link.Addr(""))

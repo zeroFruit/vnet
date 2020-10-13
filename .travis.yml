@@ -26,12 +26,15 @@ jobs:
     - stage: test
       script: |
         go test -race -cover ./pkg/...
+<<<<<<< HEAD
         if [ $? -ne 0 ]; then
           exit 1
         fi
     - stage: e2e
       script: |
         ./test/test_runner.sh true
+=======
+>>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
         if [ $? -ne 0 ]; then
           exit 1
         fi
