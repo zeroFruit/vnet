@@ -1,12 +1,12 @@
 package link
 
 import (
+	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/zeroFruit/vnet/pkg/link/na"
 
 	"github.com/zeroFruit/vnet/pkg/types"
-
-	"github.com/zeroFruit/vnet/pkg/link/na"
 )
 
 type LinkInterface interface {
@@ -54,64 +54,62 @@ func (l *Link) GetOtherInterface(addr types.HwAddr) (LinkInterface, error) {
 	return nil, fmt.Errorf("cannot find other interface link attached by %s", addr)
 }
 
-type NetDatagramHandler interface {
-	Handle(data *na.Datagram)
+type NetFrameHandler interface {
+	Handle(frame na.Frame)
 }
 
 type Node struct {
-	dataCh     chan *na.Datagram
 	quit       chan struct{}
-	ItfList    []Interface
-	netHandler NetDatagramHandler
+	Interface  Interface
+	netHandler NetFrameHandler
+	frmEnc     *FrameEncoder
+	frmDec     *FrameDecoder
 }
 
 func NewNode() *Node {
+	gob.Register(Addr(""))
 	n := &Node{
-		dataCh:     make(chan *na.Datagram), // TODO: set the buffer
 		quit:       make(chan struct{}),
-		ItfList:    make([]Interface, 0),
+		Interface:  nil,
 		netHandler: nil,
+		frmEnc:     NewFrameEncoder(),
+		frmDec:     NewFrameDecoder(),
 	}
 	return n
 }
 
-func (n *Node) RegisterNetHandler(handler NetDatagramHandler) {
+func (n *Node) RegisterNetHandler(handler NetFrameHandler) {
 	n.netHandler = handler
 }
 
 func (n *Node) AttachInterface(itf Interface) {
-	n.ItfList = append(n.ItfList, itf)
+	n.Interface = itf
 }
 
-func (n *Node) InterfaceOfAddr(addr Addr) (Interface, error) {
-	for _, itf := range n.ItfList {
-		if itf.Address().Equal(addr) {
-			return itf, nil
-		}
-	}
-	return nil, fmt.Errorf("interface of address'%s' not exist", addr.String())
-}
-
-func (n *Node) DataSink() chan<- *na.Datagram {
-	return n.dataCh
-}
-
-func (n *Node) Send(addr Addr, pkt []byte) error {
-	itf, err := n.InterfaceOfAddr(addr)
+func (n *Node) Send(addr types.HwAddr, pl []byte) error {
+	frame, err := n.frmEnc.Encode(na.Frame{
+		Src:     n.Interface.Address(),
+		Dest:    addr,
+		Payload: pl,
+	})
 	if err != nil {
 		return err
 	}
-	if err := itf.Send(pkt); err != nil {
+	if err := n.Interface.Send(frame); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (n *Node) handle(data *na.Datagram) error {
+func (n *Node) handle(fd *na.FrameData) error {
 	if n.netHandler == nil {
 		return errors.New("net handler is not registered")
 	}
-	n.netHandler.Handle(data)
+	frame, err := n.frmDec.Decode(fd.Buf)
+	if err != nil {
+		return err
+	}
+	n.netHandler.Handle(frame)
 	return nil
 }
 

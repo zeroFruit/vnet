@@ -1,12 +1,20 @@
 package link_test
 
 import (
+	"github.com/zeroFruit/vnet/pkg/link/na"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/zeroFruit/vnet/pkg/link"
 )
+
+type mockNetFrameHandler struct {
+	handleFunc func(frame na.Frame)
+}
+
+func (h *mockNetFrameHandler) Handle(frame na.Frame) {
+	h.handleFunc(frame)
+}
 
 func TestNetworkTopology(t *testing.T) {
 	t.Skip()
@@ -79,16 +87,22 @@ func TestNodeSendReceive(t *testing.T) {
 	attachLink(t, intf1, link1)
 	attachLink(t, intf2, link1)
 
-	go func() {
-		time.Sleep(time.Millisecond * 300)
-		if err := sender.Send("11-11-11-11-11-11", []byte{1, 2, 3}); err != nil {
-			t.Fatalf("failed to send message: %v", err)
+	fh := &mockNetFrameHandler{}
+	fh.handleFunc = func(frame na.Frame) {
+		if !frame.Src.Equal(link.AddrFromStr("11-11-11-11-11-11")) {
+			t.Fatalf("expected src address is '11-11-11-11-11-11', but got %s", frame.Src)
+		}
+		if !frame.Dest.Equal(link.AddrFromStr("11-11-11-11-11-13")) {
+			t.Fatalf("expected src address is '11-11-11-11-11-13', but got %s", frame.Dest)
 		}
 		wg.Done()
-	}()
+	}
+
+	receiver.RegisterNetHandler(fh)
+	if err := sender.Send(link.AddrFromStr("11-11-11-11-11-11"), []byte{1, 2, 3}); err != nil {
+		t.Fatalf("failed to send message: %v", err)
+	}
 	wg.Wait()
-	// TODO: after changing `handleData` function, test received data by injecting mock object
-	time.Sleep(time.Second * 1)
 }
 
 func attachInterface(t *testing.T, node *link.Node, itf link.Interface) {
@@ -102,10 +116,10 @@ func attachLink(t *testing.T, itf link.Interface, link *link.Link) {
 }
 
 func testNode(t *testing.T, node *link.Node, addr link.Addr, cost uint) {
-	intf1_, err := node.InterfaceOfAddr(addr)
-	if err != nil {
-		t.Fatalf("interface not exist with address: %s", addr)
-	}
+	intf1_ := node.Interface
+	//if err != nil {
+	//	t.Fatalf("interface not exist with address: %s", addr)
+	//}
 	link1_ := intf1_.GetLink()
 	if link1_ == nil {
 		t.Fatalf("link not exist on interface with address: %s", intf1_.Address())

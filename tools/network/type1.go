@@ -6,7 +6,7 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-func attachInterface(node *link.Node, itf link.AnonymInterface) {
+func attachInterface(node *link.Node, itf link.Interface) {
 	node.AttachInterface(itf)
 }
 
@@ -30,10 +30,10 @@ func Type1() (node1 *link.Node, node2 *link.Node) {
 	node2 = link.NewNode()
 
 	// setup interface
-	intf1 := link.NewInterface(40001, "11-11-11-11-11-11", node1)
+	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), node1)
 	attachInterface(node1, intf1)
 
-	intf2 := link.NewInterface(40002, "11-11-11-11-11-12", node2)
+	intf2 := link.NewInterface(40002, link.AddrFromStr("11-11-11-11-11-12"), node2)
 	attachInterface(node2, intf2)
 
 	// setup link

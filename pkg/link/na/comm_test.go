@@ -28,12 +28,6 @@ func TestDatagramTransport(t *testing.T) {
 		if data.Buf[0] != 'a' {
 			t.Fatalf("expected datagram is 'a', but got %c", data.Buf[0])
 		}
-		if data.From != "" {
-			t.Fatalf("expected sender address is '127.0.0.1:40000', but got %s", data.From)
-		}
-		if data.HardwareAddr != "" {
-			t.Fatalf("hardware address is not empty")
-		}
 		wg.Done()
 	}()
 

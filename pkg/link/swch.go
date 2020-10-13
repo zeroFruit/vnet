@@ -2,10 +2,10 @@ package link
 
 import (
 	"fmt"
+	"github.com/zeroFruit/vnet/pkg/errors"
+	"github.com/zeroFruit/vnet/pkg/link/na"
 	"log"
 	"time"
-
-	"github.com/zeroFruit/vnet/pkg/link/na"
 
 	"github.com/zeroFruit/vnet/pkg/types"
 )
@@ -62,25 +62,27 @@ func (t *SwitchTable) Entries() []SwitchEntry {
 }
 
 type PacketForwarder interface {
-	Forward(id string, addr types.HwAddr, pkt []byte) error
+	Forward(id string, src types.HwAddr, dest types.HwAddr, pkt []byte) error
 }
 
 type AnonymInterface interface {
 	GetLink() *Link
 	AttachLink(link *Link) error
-	Send(pkt []byte) error
+	Send(frame []byte) error
 }
 
 type UDPBasedSwitchInterface struct {
 	*UDPBasedInterface
 	id        string
 	forwarder PacketForwarder
+	frmDec    *FrameDecoder
 }
 
 func NewSwitchInterface(port int, hwAddr types.HwAddr, id string, forwarder PacketForwarder) *UDPBasedSwitchInterface {
 	si := &UDPBasedSwitchInterface{
 		id:        id,
 		forwarder: forwarder,
+		frmDec:    NewFrameDecoder(),
 	}
 	i := NewInterface(port, hwAddr, si.handler)
 	si.UDPBasedInterface = i
@@ -88,12 +90,12 @@ func NewSwitchInterface(port int, hwAddr types.HwAddr, id string, forwarder Pack
 }
 
 // handle receives datagram from UDPBasedInterface than forward it to PacketForwarder
-func (si *UDPBasedSwitchInterface) handle(datagram *na.Datagram) error {
-	li, err := si.link.GetOtherInterface(si.Addr)
+func (si *UDPBasedSwitchInterface) handle(fd *na.FrameData) error {
+	frame, err := si.frmDec.Decode(fd.Buf)
 	if err != nil {
 		return err
 	}
-	return si.forwarder.Forward(si.id, li.Address(), datagram.Buf)
+	return si.forwarder.Forward(si.id, frame.Src, frame.Dest, frame.Payload)
 }
 
 type Switch struct {
@@ -119,7 +121,7 @@ func NewSwitchWithTable(table *SwitchTable) *Switch {
 }
 
 func (s *Switch) Attach(id string, itf AnonymInterface) error {
-	if _, ok := s.ItfList[id]; !ok {
+	if _, ok := s.ItfList[id]; ok {
 		return fmt.Errorf("already exist interface: %s", id)
 	}
 	s.ItfList[id] = itf
@@ -129,26 +131,27 @@ func (s *Switch) Attach(id string, itf AnonymInterface) error {
 // Forward receives id of interface it receives packet, address of sender
 // and packet to send to receiver. Based on id, address it determines whether to
 // broadcast packet or forward it to others, otherwise just discard packet.
-func (s *Switch) Forward(id string, sender types.HwAddr, pkt []byte) error {
-	entry, ok := s.table.LookupByAddr(sender)
+func (s *Switch) Forward(id string, src types.HwAddr, dest types.HwAddr, pkt []byte) error {
+	s.table.Update(id, src)
+
+	entry, ok := s.table.LookupByAddr(dest)
 	if !ok {
-		s.table.Update(id, sender)
-		return s.broadcast(id, pkt)
+		return s.broadcastExcept(id, pkt)
 	}
 	if entry.Id == id {
-		log.Printf("discard packet from id: %s, address: %s\n", id, sender)
+		log.Printf("discard packet from id: %s, src: %s, dest: %s\n", id, src, dest)
 		return nil
 	}
 	return s.ItfList[entry.Id].Send(pkt)
 }
 
-// broadcast sends packet to other interfaces except the interface
+// broadcastExcept sends packet to other interfaces except the interface
 // with the id value given by parameter
-func (s *Switch) broadcast(id string, pkt []byte) error {
-	err := MultipleErr()
-	for _, entry := range s.table.Entries() {
-		if entry.Id != id {
-			err = err.Happen(s.ItfList[entry.Id].Send(pkt))
+func (s *Switch) broadcastExcept(id string, pkt []byte) error {
+	err := errors.Multiple()
+	for itfId, itf := range s.ItfList {
+		if itfId != id {
+			err = err.Happen(itf.Send(pkt))
 		}
 	}
 	return err.Return()

@@ -16,8 +16,8 @@ type Interface interface {
 	Address() types.HwAddr
 }
 
-type DatagramHandler interface {
-	handle(datagram *na.Datagram) error
+type FrameDataHandler interface {
+	handle(frame *na.FrameData) error
 }
 
 type UDPBasedInterface struct {
@@ -26,11 +26,11 @@ type UDPBasedInterface struct {
 	Addr         types.HwAddr
 	link         *Link
 	adapter      na.Card
-	handler      DatagramHandler
+	handler      FrameDataHandler
 	quit         chan struct{}
 }
 
-func NewInterface(port int, hwAddr types.HwAddr, handler DatagramHandler) *UDPBasedInterface {
+func NewInterface(port int, hwAddr types.HwAddr, handler FrameDataHandler) *UDPBasedInterface {
 	itf := &UDPBasedInterface{
 		internalPort: port,
 		internalIP:   internal.DefaultAddr,
@@ -62,12 +62,12 @@ func (i *UDPBasedInterface) AttachLink(link *Link) error {
 	return nil
 }
 
-func (i *UDPBasedInterface) Send(buf []byte) error {
+func (i *UDPBasedInterface) Send(frame []byte) error {
 	receiver, err := i.link.GetOtherInterface(i.Addr)
 	if err != nil {
 		return err
 	}
-	i.adapter.Send(buf, receiver.InternalAddress().String())
+	i.adapter.Send(frame, receiver.InternalAddress().String())
 	return nil
 }
 
@@ -75,7 +75,7 @@ func (i *UDPBasedInterface) sink() {
 	for {
 		select {
 		case data := <-i.adapter.Recv():
-			data.From = i.Addr.String()
+			data.Incoming = i.Addr
 			if err := i.handler.handle(data); err != nil {
 				log.Fatal(err)
 			}

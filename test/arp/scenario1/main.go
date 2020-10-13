@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/zeroFruit/vnet/test"
 	"time"
 
 	"github.com/zeroFruit/vnet/pkg/link"
@@ -12,7 +12,6 @@ import (
 )
 
 /*
-
         1.1.1.1                            1.1.1.2
    11-11-11-11-11-11                  11-11-11-11-11-12
        +-------+                          +-------+
@@ -37,7 +36,7 @@ func main() {
 			return net2.UpdateAddr(link.AddrFromStr("11-11-11-11-11-12"), net.AddrFromStr("1.1.1.2"))
 		},
 	} {
-		ShouldSuccess(fn)
+		test.ShouldSuccess(fn)
 	}
 
 	table := arp.NewTable()
@@ -47,28 +46,18 @@ func main() {
 	net1.RegisterArp(arp1)
 	net2.RegisterArp(arp2)
 
-	errs := arp1.Broadcast(net.AddrFromStr("1.1.1.2"))
-	if len(errs) != 0 {
-		Fatalf("expected errors when broadcast is 0 but got %d", len(errs))
+	err := arp1.Broadcast(net.AddrFromStr("1.1.1.2"))
+	if err != nil {
+		test.Fatalf("failed to broadcast ARP message: %v", err)
 	}
 
 	time.Sleep(1 * time.Second)
 
 	entry, ok := table.Lookup(arp.Key{NetAddr: net.AddrFromStr("1.1.1.2")})
 	if !ok {
-		Fatalf("net address not exist on table")
+		test.Fatalf("net address not exist on table")
 	}
 	if !entry.HwAddr.Equal(link.AddrFromStr("11-11-11-11-11-12")) {
-		Fatalf("expected hw address is '11-11-11-11-11-12', but got '%s'", entry.HwAddr)
-	}
-}
-
-func Fatalf(format string, a ...interface{}) {
-	panic(fmt.Sprintf(format, a...))
-}
-
-func ShouldSuccess(fn func() error) {
-	if err := fn(); err != nil {
-		Fatalf("fn should success but failed with err: %v", err)
+		test.Fatalf("expected hw address is '11-11-11-11-11-12', but got '%s'", entry.HwAddr)
 	}
 }

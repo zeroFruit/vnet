@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeroFruit/vnet/pkg/types"
-
 	"github.com/zeroFruit/vnet/pkg/link/internal"
 )
 
@@ -21,14 +19,6 @@ const (
 	udpRecvBufSize = 2 * 1024 * 1024
 )
 
-// Datagram represents the packets of receiver
-type Datagram struct {
-	Buf          []byte
-	From         string
-	HardwareAddr types.HwAddr
-	Timestamp    time.Time
-}
-
 type packetConn interface {
 	ReadFrom(p []byte) (n int, addr net.Addr, err error)
 	WriteTo(p []byte, addr net.Addr) (n int, err error)
@@ -36,13 +26,13 @@ type packetConn interface {
 
 type Card interface {
 	Send(buf []byte, addr string) (time.Time, error)
-	Recv() <-chan *Datagram
+	Recv() <-chan *FrameData
 }
 
 type UDPTransport struct {
 	ip         internal.Addr
 	port       int
-	packetCh   chan *Datagram
+	frameCh    chan *FrameData
 	packetConn packetConn
 	shutdown   bool
 	lock       sync.RWMutex
@@ -50,6 +40,7 @@ type UDPTransport struct {
 
 func ListenDatagram(ip internal.Addr, port int) (*net.UDPConn, error) {
 	udpAddr := &net.UDPAddr{
+		// TODO: remove ip parameters and set this value by internal.DefaultAddr value
 		IP:   net.ParseIP(string(ip)),
 		Port: port,
 	}
@@ -71,7 +62,7 @@ func New(ip internal.Addr, port int) (*UDPTransport, error) {
 	t := UDPTransport{
 		ip:         ip,
 		port:       port,
-		packetCh:   make(chan *Datagram),
+		frameCh:    make(chan *FrameData),
 		packetConn: pc,
 		shutdown:   false,
 		lock:       sync.RWMutex{},
@@ -96,15 +87,15 @@ func (p *UDPTransport) listen() {
 			fmt.Println(fmt.Sprintf("error UDP packet too short, got %d bytes", n))
 			continue
 		}
-		p.packetCh <- &Datagram{
+		p.frameCh <- &FrameData{
 			Buf:       buf[:n],
 			Timestamp: now,
 		}
 	}
 }
 
-func (p *UDPTransport) Recv() <-chan *Datagram {
-	return p.packetCh
+func (p *UDPTransport) Recv() <-chan *FrameData {
+	return p.frameCh
 }
 
 func (p *UDPTransport) Send(buf []byte, addr string) (time.Time, error) {

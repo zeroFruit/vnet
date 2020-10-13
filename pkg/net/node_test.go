@@ -3,6 +3,8 @@ package net_test
 import (
 	"testing"
 
+	"github.com/zeroFruit/vnet/pkg/types"
+
 	"github.com/zeroFruit/vnet/pkg/net"
 
 	"github.com/zeroFruit/vnet/pkg/link"
@@ -24,7 +26,7 @@ func (i *mockInterface) Send(pkt []byte) error {
 	return nil
 }
 
-func (i *mockInterface) Address() link.Addr {
+func (i *mockInterface) Address() types.HwAddr {
 	return i.Addr
 }
 

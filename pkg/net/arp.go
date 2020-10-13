@@ -4,16 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-
 	"github.com/zeroFruit/vnet/pkg/link"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
 )
 
-type ArpPayloadEncoder struct {
-	buf     *bytes.Buffer
-	encoder *gob.Encoder
-}
+type ArpPayloadEncoder struct {}
 
 func NewArpPayloadEncoder() *ArpPayloadEncoder {
 	gob.Register(link.Addr(""))

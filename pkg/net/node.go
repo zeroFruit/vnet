@@ -3,9 +3,8 @@ package net
 import (
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/zeroFruit/vnet/pkg/link/na"
+	"log"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
 
@@ -16,10 +15,10 @@ import (
 
 type Interface struct {
 	Addr types.NetAddr
-	hw   link.AnonymInterface
+	hw   link.Interface
 }
 
-func NewInterface(hw link.AnonymInterface, addr types.NetAddr) *Interface {
+func NewInterface(hw link.Interface, addr types.NetAddr) *Interface {
 	return &Interface{
 		Addr: addr,
 		hw:   hw,
@@ -40,16 +39,16 @@ func (i *Interface) Send(pkt []byte) error {
 
 type Node struct {
 	hw      *link.Node
-	ItfList []*Interface
+	ItfList []*Interface // TODO: need to be removed?
 	arp     arp.Service
-	decoder arp.PayloadDecoder
+	plDec   arp.PayloadDecoder
 }
 
 func NewNode(hw *link.Node) *Node {
 	return &Node{
 		hw:      hw,
 		ItfList: make([]*Interface, 0),
-		decoder: NewArpPayloadDecoder(),
+		plDec:   NewArpPayloadDecoder(),
 	}
 }
 
@@ -57,7 +56,7 @@ func (n *Node) UpdateAddr(hwAddr types.HwAddr, addr types.NetAddr) error {
 	if ok := n.updateExistAddr(hwAddr, addr); ok {
 		return nil
 	}
-	if ok := n.registerNewAddr(hwAddr, addr); ok {
+	if ok := n.registerNewAddr(addr); ok {
 		return nil
 	}
 	return fmt.Errorf("failed to register address '%s' on hw address '%s', not enough hw interface", addr, hwAddr)
@@ -74,16 +73,12 @@ func (n *Node) updateExistAddr(hwAddr types.HwAddr, addr types.NetAddr) (ok bool
 	return
 }
 
-func (n *Node) registerNewAddr(hwAddr types.HwAddr, addr types.NetAddr) (ok bool) {
-	ok = false
-	for _, hwItf := range n.hw.ItfList {
-		if hwItf.Address().Equal(hwAddr) {
-			itf := NewInterface(hwItf, addr)
-			n.ItfList = append(n.ItfList, itf)
-			ok = true
-		}
+func (n *Node) registerNewAddr(addr types.NetAddr) bool {
+	if n.hw.Interface == nil {
+		return false
 	}
-	return
+	n.ItfList = append(n.ItfList, NewInterface(n.hw.Interface, addr))
+	return true
 }
 
 func (n *Node) InterfaceOfAddr(addr Addr) (*Interface, error) {
@@ -118,8 +113,8 @@ func (n *Node) RegisterArp(arp arp.Service) {
 	n.arp = arp
 }
 
-func (n *Node) Handle(data *na.Datagram) {
-	payload, err := n.decoder.Decode(data.Buf)
+func (n *Node) Handle(frame na.Frame) {
+	payload, err := n.plDec.Decode(frame.Payload)
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)
