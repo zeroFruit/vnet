@@ -3,9 +3,8 @@ package net
 import (
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/zeroFruit/vnet/pkg/link/na"
+	"log"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
 
@@ -16,10 +15,10 @@ import (
 
 type Interface struct {
 	Addr types.NetAddr
-	hw   link.AnonymInterface
+	hw   link.Interface
 }
 
-func NewInterface(hw link.AnonymInterface, addr types.NetAddr) *Interface {
+func NewInterface(hw link.Interface, addr types.NetAddr) *Interface {
 	return &Interface{
 		Addr: addr,
 		hw:   hw,
@@ -39,7 +38,11 @@ func (i *Interface) Send(pkt []byte) error {
 }
 
 type Node struct {
+<<<<<<< HEAD
 	hw      *link.Host
+=======
+	hw      *link.Node
+>>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
 	ItfList []*Interface // TODO: need to be removed?
 	arp     arp.Service
 	plDec   arp.PayloadDecoder
@@ -115,12 +118,17 @@ func (n *Node) RegisterArp(arp arp.Service) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (n *Node) Handle(pl []byte) {
 	payload, err := n.plDec.Decode(pl)
 =======
 func (n *Node) Handle(data *na.Datagram) {
 	payload, err := n.decoder.Decode(data.Buf)
 >>>>>>> 5ca1354... feat: implement Switch basic functions
+=======
+func (n *Node) Handle(frame na.Frame) {
+	payload, err := n.plDec.Decode(frame.Payload)
+>>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)

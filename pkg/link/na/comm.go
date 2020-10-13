@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeroFruit/vnet/pkg/types"
-
 	"github.com/zeroFruit/vnet/pkg/link/internal"
 )
 
@@ -21,28 +19,14 @@ const (
 	udpRecvBufSize = 2 * 1024 * 1024
 )
 
-<<<<<<< HEAD:pkg/link/na/comm.go
-=======
-// Datagram represents the packets of receiver
-type Datagram struct {
-	Buf          []byte
-	From         string
-	HardwareAddr types.HwAddr
-	Timestamp    time.Time
-}
-
->>>>>>> 5ca1354... feat: implement Switch basic functions:pkg/link/comm.go
 type packetConn interface {
 	ReadFrom(p []byte) (n int, addr net.Addr, err error)
 	WriteTo(p []byte, addr net.Addr) (n int, err error)
 }
 
-<<<<<<< HEAD:pkg/link/na/comm.go
 // Card is abstracted network adapter part to simulate bytes transport on
 // physical cable. Node's interface uses this interface to send frame
 // between nodes.
-=======
->>>>>>> 5ca1354... feat: implement Switch basic functions:pkg/link/comm.go
 type Card interface {
 	Send(buf []byte, addr string) (time.Time, error)
 	Recv() <-chan *FrameData
