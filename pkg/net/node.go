@@ -3,7 +3,6 @@ package net
 import (
 	"errors"
 	"fmt"
-	"github.com/zeroFruit/vnet/pkg/link/na"
 	"log"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
@@ -119,6 +118,7 @@ func (n *Node) RegisterArp(arp arp.Service) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 func (n *Node) Handle(pl []byte) {
 	payload, err := n.plDec.Decode(pl)
 =======
@@ -129,6 +129,10 @@ func (n *Node) Handle(data *na.Datagram) {
 func (n *Node) Handle(frame na.Frame) {
 	payload, err := n.plDec.Decode(frame.Payload)
 >>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
+=======
+func (n *Node) Handle(pl []byte) {
+	payload, err := n.plDec.Decode(pl)
+>>>>>>> dbc75fc... fix: update switch logic, add link layer integration tests
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)
