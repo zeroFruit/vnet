@@ -16,6 +16,8 @@ func (h *mockNetHandler) Handle(pl []byte) {
 	h.handleFunc(pl)
 }
 
+// TestNetworkTopology tests about host, interface, link connectivity. But
+// it listens UDP port internally so skip when unit-testing.
 func TestNetworkTopology(t *testing.T) {
 	t.Skip()
 	// setup node
@@ -37,6 +39,8 @@ func TestNetworkTopology(t *testing.T) {
 	testNode(t, node2, "11-11-11-11-11-12", 1)
 }
 
+// TestNodeSendReceive tests whether host could send bytes to other host properly.
+// But it listens UDP port internally so skip when unit-testing.
 func TestNodeSendReceive(t *testing.T) {
 	t.Skip()
 	wg := sync.WaitGroup{}

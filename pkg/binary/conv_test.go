@@ -18,5 +18,4 @@ func TestUintToByteSlice(t *testing.T) {
 			t.Fatalf("expected num value is %d, but got %d", num, result)
 		}
 	}
-
 }

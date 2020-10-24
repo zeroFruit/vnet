@@ -8,6 +8,8 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link/na"
 )
 
+// TestDatagramTransport tests whether Card could send bytes data to others properly.
+// But it listens UDP port internally so skip when unit-testing.
 func TestDatagramTransport(t *testing.T) {
 	t.Skip()
 	wg := sync.WaitGroup{}
