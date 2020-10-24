@@ -25,7 +25,13 @@ jobs:
         fi
     - stage: test
       script: |
-        go test -race -cover ./...
+        go test -race -cover ./pkg/...
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+    - stage: e2e
+      script: |
+        ./test/test_runner.sh true
         if [ $? -ne 0 ]; then
           exit 1
         fi

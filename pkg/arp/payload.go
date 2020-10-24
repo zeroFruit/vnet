@@ -1,9 +1,8 @@
 package arp
 
 import (
-	"github.com/zeroFruit/vnet/pkg/types"
-
 	"github.com/zeroFruit/vnet/pkg/link"
+	"github.com/zeroFruit/vnet/pkg/types"
 )
 
 type HardwareType uint16

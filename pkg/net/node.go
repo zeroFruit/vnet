@@ -37,17 +37,17 @@ func (i *Interface) Send(pkt []byte) error {
 }
 
 type Node struct {
-	hw      *link.Node
-	ItfList []*Interface
+	hw      *link.Host
+	ItfList []*Interface // TODO: need to be removed?
 	arp     arp.Service
-	decoder arp.PayloadDecoder
+	plDec   arp.PayloadDecoder
 }
 
-func NewNode(hw *link.Node) *Node {
+func NewNode(hw *link.Host) *Node {
 	return &Node{
 		hw:      hw,
 		ItfList: make([]*Interface, 0),
-		decoder: NewArpPayloadDecoder(),
+		plDec:   NewArpPayloadDecoder(),
 	}
 }
 
@@ -55,7 +55,7 @@ func (n *Node) UpdateAddr(hwAddr types.HwAddr, addr types.NetAddr) error {
 	if ok := n.updateExistAddr(hwAddr, addr); ok {
 		return nil
 	}
-	if ok := n.registerNewAddr(hwAddr, addr); ok {
+	if ok := n.registerNewAddr(addr); ok {
 		return nil
 	}
 	return fmt.Errorf("failed to register address '%s' on hw address '%s', not enough hw interface", addr, hwAddr)
@@ -72,16 +72,12 @@ func (n *Node) updateExistAddr(hwAddr types.HwAddr, addr types.NetAddr) (ok bool
 	return
 }
 
-func (n *Node) registerNewAddr(hwAddr types.HwAddr, addr types.NetAddr) (ok bool) {
-	ok = false
-	for _, hwItf := range n.hw.ItfList {
-		if hwItf.Address().Equal(hwAddr) {
-			itf := NewInterface(hwItf, addr)
-			n.ItfList = append(n.ItfList, itf)
-			ok = true
-		}
+func (n *Node) registerNewAddr(addr types.NetAddr) bool {
+	if n.hw.Interface == nil {
+		return false
 	}
-	return
+	n.ItfList = append(n.ItfList, NewInterface(n.hw.Interface, addr))
+	return true
 }
 
 func (n *Node) InterfaceOfAddr(addr Addr) (*Interface, error) {
@@ -116,8 +112,8 @@ func (n *Node) RegisterArp(arp arp.Service) {
 	n.arp = arp
 }
 
-func (n *Node) Handle(data *link.Datagram) {
-	payload, err := n.decoder.Decode(data.Buf)
+func (n *Node) Handle(pl []byte) {
+	payload, err := n.plDec.Decode(pl)
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)

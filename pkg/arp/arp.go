@@ -1,56 +1,66 @@
 package arp
 
 import (
+	"github.com/zeroFruit/vnet/pkg/errors"
+	"github.com/zeroFruit/vnet/pkg/link"
+	"github.com/zeroFruit/vnet/pkg/link/na"
 	"github.com/zeroFruit/vnet/pkg/types"
 )
 
 type Service interface {
-	Broadcast(tna types.NetAddr) []error
-	Reply() error
+	Broadcast(tna types.NetAddr) error
 	Recv(payload Payload) error
 }
 
 type service struct {
-	node    types.NetNode
-	table   *Table
-	encoder PayloadEncoder
+	node   types.NetNode
+	table  *Table
+	plEnc  PayloadEncoder
+	frmEnc *link.FrameEncoder
 }
 
-func New(node types.NetNode, encoder PayloadEncoder) Service {
+func New(node types.NetNode, plEnc PayloadEncoder) Service {
 	return &service{
-		node:    node,
-		table:   NewTable(),
-		encoder: encoder,
+		node:   node,
+		table:  NewTable(),
+		plEnc:  plEnc,
+		frmEnc: link.NewFrameEncoder(),
 	}
 }
 
-func NewWithTable(node types.NetNode, encoder PayloadEncoder, table *Table) Service {
+func NewWithTable(node types.NetNode, plEnc PayloadEncoder, table *Table) Service {
 	return &service{
-		node:    node,
-		table:   table,
-		encoder: encoder,
+		node:   node,
+		table:  table,
+		plEnc:  plEnc,
+		frmEnc: link.NewFrameEncoder(),
 	}
 }
 
-func (s *service) Broadcast(tna types.NetAddr) []error {
-	errs := make([]error, 0)
+func (s *service) Broadcast(tna types.NetAddr) error {
+	errs := errors.Multiple()
 	// FIXME: selectively choose interface depending on the target network address
 	for _, itf := range s.node.Interfaces() {
-		pkt, err := s.encoder.Encode(
+		pl, err := s.plEnc.Encode(
 			Request(itf.HwAddress(), itf.NetAddress(), tna))
 		if err != nil {
-			errs = append(errs, err)
+			errs = errs.Happen(err)
 			continue
 		}
-		if err := itf.Send(pkt); err != nil {
-			errs = append(errs, err)
+		frame, err := s.frmEnc.Encode(na.Frame{
+			Src:     itf.HwAddress(),
+			Dest:    link.BroadcastAddr,
+			Payload: pl,
+		})
+		if err != nil {
+			errs = errs.Happen(err)
+			continue
+		}
+		if err := itf.Send(frame); err != nil {
+			errs = errs.Happen(err)
 		}
 	}
-	return errs
-}
-
-func (s *service) Reply() error {
-	return nil
+	return errs.Return()
 }
 
 func (s *service) Recv(payload Payload) error {
@@ -72,10 +82,18 @@ func (s *service) Recv(payload Payload) error {
 	if payload.Op == Reply {
 		return nil
 	}
-	pkt, err := s.encoder.Encode(
+	pl, err := s.plEnc.Encode(
 		Response(itf.HwAddress(), itf.NetAddress(), payload.SHwAddr, payload.SNetAddr))
 	if err != nil {
 		return err
 	}
-	return itf.Send(pkt)
+	frame, err := s.frmEnc.Encode(na.Frame{
+		Src:     itf.HwAddress(),
+		Dest:    payload.SHwAddr,
+		Payload: pl,
+	})
+	if err != nil {
+		return err
+	}
+	return itf.Send(frame)
 }

@@ -3,10 +3,11 @@ package arp_test
 import (
 	"testing"
 
+	"github.com/zeroFruit/vnet/pkg/link"
+
 	"github.com/zeroFruit/vnet/pkg/types"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
-	"github.com/zeroFruit/vnet/pkg/link"
 	"github.com/zeroFruit/vnet/pkg/net"
 )
 
@@ -63,9 +64,13 @@ func TestService_Broadcast(t *testing.T) {
 		}
 		return []byte("hello"), nil
 	}
-	itf.sendFunc = func(pkt []byte) error {
-		if string(pkt) != "hello" {
-			t.Fatalf("expected pkt message is 'hello', but got %s", string(pkt))
+	itf.sendFunc = func(frame []byte) error {
+		f, err := link.NewFrameDecoder().Decode(frame)
+		if err != nil {
+			t.Fatalf("failed to decode frame: %v", err)
+		}
+		if string(f.Payload) != "hello" {
+			t.Fatalf("expected pkt message is 'hello', but got %s", string(f.Payload))
 		}
 		return nil
 	}
@@ -73,9 +78,9 @@ func TestService_Broadcast(t *testing.T) {
 		itfList: []types.NetInterface{itf},
 	}
 	service := arp.New(node, enc)
-	errs := service.Broadcast(net.AddrFromStr("2.2.2.2"))
-	if len(errs) != 0 {
-		t.Fatalf("expected errs length is 0 but got %d, %v", len(errs), errs)
+	err := service.Broadcast(net.AddrFromStr("2.2.2.2"))
+	if err != nil {
+		t.Fatalf("failed to broadcast ARP message: %v", err)
 	}
 }
 
@@ -136,9 +141,13 @@ func TestService_Recv(t *testing.T) {
 			&mockNetInterface{
 				hwAddr:  "22-22-22-22-22-22",
 				netAddr: "2.2.2.2",
-				sendFunc: func(pkt []byte) error {
-					if string(pkt) != "result" {
-						t.Fatalf("expected pkt is 'result', but got '%s'", string(pkt))
+				sendFunc: func(frame []byte) error {
+					f, err := link.NewFrameDecoder().Decode(frame)
+					if err != nil {
+						t.Fatalf("failed to decode frame: %v", err)
+					}
+					if string(f.Payload) != "result" {
+						t.Fatalf("expected pkt is 'result', but got '%s'", string(f.Payload))
 					}
 					return nil
 				},

@@ -3,6 +3,8 @@ package net_test
 import (
 	"testing"
 
+	"github.com/zeroFruit/vnet/pkg/types"
+
 	"github.com/zeroFruit/vnet/pkg/net"
 
 	"github.com/zeroFruit/vnet/pkg/link"
@@ -24,7 +26,7 @@ func (i *mockInterface) Send(pkt []byte) error {
 	return nil
 }
 
-func (i *mockInterface) Address() link.Addr {
+func (i *mockInterface) Address() types.HwAddr {
 	return i.Addr
 }
 
@@ -32,7 +34,7 @@ func TestNode_UpdateAddr_WhenInterfaceExist(t *testing.T) {
 	li := &mockInterface{
 		Addr: "11-11-11-11-11-11",
 	}
-	ln := link.NewNode()
+	ln := link.NewHost()
 	ln.AttachInterface(li)
 
 	nn := net.NewNode(ln)
@@ -54,7 +56,7 @@ func TestNode_UpdateAddr_WhenInterfaceNotExist(t *testing.T) {
 	li := &mockInterface{
 		Addr: "11-11-11-11-11-11",
 	}
-	ln := link.NewNode()
+	ln := link.NewHost()
 	ln.AttachInterface(li)
 
 	nn := net.NewNode(ln)
@@ -73,7 +75,7 @@ func TestNode_UpdateAddr_WhenInterfaceNotExist(t *testing.T) {
 
 func TestNode_UpdateAddr_WhenHwInterfaceNotEnough(t *testing.T) {
 	// there's no hw interface attached
-	ln := link.NewNode()
+	ln := link.NewHost()
 
 	nn := net.NewNode(ln)
 

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/zeroFruit/vnet/pkg/link"
+
 	"github.com/zeroFruit/vnet/pkg/net"
 
 	"github.com/zeroFruit/vnet/pkg/arp"

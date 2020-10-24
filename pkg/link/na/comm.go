@@ -1,4 +1,4 @@
-package link
+package na
 
 import (
 	"fmt"
@@ -19,27 +19,23 @@ const (
 	udpRecvBufSize = 2 * 1024 * 1024
 )
 
-type Datagram struct {
-	Buf          []byte
-	From         string
-	HardwareAddr Addr
-	Timestamp    time.Time
-}
-
 type packetConn interface {
 	ReadFrom(p []byte) (n int, addr net.Addr, err error)
 	WriteTo(p []byte, addr net.Addr) (n int, err error)
 }
 
-type NetworkAdapter interface {
+// Card is abstracted network adapter part to simulate bytes transport on
+// physical cable. Node's interface uses this interface to send frame
+// between nodes.
+type Card interface {
 	Send(buf []byte, addr string) (time.Time, error)
-	Recv() <-chan *Datagram
+	Recv() <-chan *FrameData
 }
 
 type UDPTransport struct {
 	ip         internal.Addr
 	port       int
-	packetCh   chan *Datagram
+	frameCh    chan *FrameData
 	packetConn packetConn
 	shutdown   bool
 	lock       sync.RWMutex
@@ -47,6 +43,7 @@ type UDPTransport struct {
 
 func ListenDatagram(ip internal.Addr, port int) (*net.UDPConn, error) {
 	udpAddr := &net.UDPAddr{
+		// TODO: remove ip parameters and set this value by internal.DefaultAddr value
 		IP:   net.ParseIP(string(ip)),
 		Port: port,
 	}
@@ -60,7 +57,7 @@ func ListenDatagram(ip internal.Addr, port int) (*net.UDPConn, error) {
 	return udpConn, nil
 }
 
-func NewNetworkAdapter(ip internal.Addr, port int) (*UDPTransport, error) {
+func New(ip internal.Addr, port int) (*UDPTransport, error) {
 	pc, err := ListenDatagram(ip, port)
 	if err != nil {
 		return nil, err
@@ -68,7 +65,7 @@ func NewNetworkAdapter(ip internal.Addr, port int) (*UDPTransport, error) {
 	t := UDPTransport{
 		ip:         ip,
 		port:       port,
-		packetCh:   make(chan *Datagram),
+		frameCh:    make(chan *FrameData),
 		packetConn: pc,
 		shutdown:   false,
 		lock:       sync.RWMutex{},
@@ -93,19 +90,19 @@ func (p *UDPTransport) listen() {
 			fmt.Println(fmt.Sprintf("error UDP packet too short, got %d bytes", n))
 			continue
 		}
-		p.packetCh <- &Datagram{
+		p.frameCh <- &FrameData{
 			Buf:       buf[:n],
 			Timestamp: now,
 		}
 	}
 }
 
-func (p *UDPTransport) Recv() <-chan *Datagram {
-	return p.packetCh
+func (p *UDPTransport) Recv() <-chan *FrameData {
+	return p.frameCh
 }
 
 func (p *UDPTransport) Send(buf []byte, addr string) (time.Time, error) {
-	udpAddr, err := net.ResolveUDPAddr("udp", string(addr))
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return time.Time{}, err
 	}

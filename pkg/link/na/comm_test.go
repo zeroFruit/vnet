@@ -1,22 +1,24 @@
-package link_test
+package na_test
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/zeroFruit/vnet/pkg/link"
+	"github.com/zeroFruit/vnet/pkg/link/na"
 )
 
+// TestDatagramTransport tests whether Card could send bytes data to others properly.
+// But it listens UDP port internally so skip when unit-testing.
 func TestDatagramTransport(t *testing.T) {
 	t.Skip()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	sender, err := link.NewNetworkAdapter("127.0.0.1", 40000)
+	sender, err := na.New("127.0.0.1", 40000)
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}
-	receiver, err := link.NewNetworkAdapter("127.0.0.1", 40001)
+	receiver, err := na.New("127.0.0.1", 40001)
 	if err != nil {
 		t.Fatalf("failed to create network adapter: %v", err)
 	}
@@ -27,12 +29,6 @@ func TestDatagramTransport(t *testing.T) {
 		}
 		if data.Buf[0] != 'a' {
 			t.Fatalf("expected datagram is 'a', but got %c", data.Buf[0])
-		}
-		if data.From != "" {
-			t.Fatalf("expected sender address is '127.0.0.1:40000', but got %s", data.From)
-		}
-		if data.HardwareAddr != "" {
-			t.Fatalf("hardware address is not empty")
 		}
 		wg.Done()
 	}()
