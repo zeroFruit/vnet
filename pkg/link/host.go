@@ -1,7 +1,6 @@
 package link
 
 import (
-	"encoding/gob"
 	"errors"
 	"fmt"
 
@@ -55,11 +54,12 @@ func (l *Link) GetOtherInterface(addr types.HwAddr) (LinkInterface, error) {
 	return nil, fmt.Errorf("cannot find other interface link attached by %s", addr)
 }
 
+// NetHandler receives serialized frame payload. With this, doing some high-level protocol
 type NetHandler interface {
 	Handle(pl []byte)
 }
 
-type Node struct {
+type Host struct {
 	quit       chan struct{}
 	Interface  Interface
 	netHandler NetHandler
@@ -67,9 +67,8 @@ type Node struct {
 	frmDec     *FrameDecoder
 }
 
-func NewNode() *Node {
-	gob.Register(Addr(""))
-	n := &Node{
+func NewNode() *Host {
+	n := &Host{
 		quit:       make(chan struct{}),
 		Interface:  nil,
 		netHandler: nil,
@@ -79,15 +78,16 @@ func NewNode() *Node {
 	return n
 }
 
-func (n *Node) RegisterNetHandler(handler NetHandler) {
+func (n *Host) RegisterNetHandler(handler NetHandler) {
 	n.netHandler = handler
 }
 
-func (n *Node) AttachInterface(itf Interface) {
+func (n *Host) AttachInterface(itf Interface) {
 	n.Interface = itf
 }
 
-func (n *Node) Send(dest types.HwAddr, pl []byte) error {
+// Send make frame with payload and transfer to destination
+func (n *Host) Send(dest types.HwAddr, pl []byte) error {
 	frame, err := n.frmEnc.Encode(na.Frame{
 		Src:     n.Interface.Address(),
 		Dest:    dest,
@@ -102,7 +102,7 @@ func (n *Node) Send(dest types.HwAddr, pl []byte) error {
 	return nil
 }
 
-func (n *Node) handle(fd *na.FrameData) error {
+func (n *Host) handle(fd *na.FrameData) error {
 	if n.netHandler == nil {
 		return errors.New("net handler is not registered")
 	}
@@ -114,6 +114,6 @@ func (n *Node) handle(fd *na.FrameData) error {
 	return nil
 }
 
-func (n *Node) Shutdown() {
+func (n *Host) Shutdown() {
 	n.quit <- struct{}{}
 }

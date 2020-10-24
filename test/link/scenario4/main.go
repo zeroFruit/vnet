@@ -49,7 +49,7 @@ func main() {
 	}
 
 	go func() {
-		// wait one seconds for checking packet discard log
+		// wait one seconds for checking frame discard log
 		time.Sleep(1 * time.Second)
 		wg.Done()
 	}()

@@ -18,6 +18,8 @@ type Interface interface {
 	Address() types.HwAddr
 }
 
+// FrameDataHandler receives frame data comes from network adapter. Each node should have
+// FrameDataHandler to process and validate frame.
 type FrameDataHandler interface {
 	handle(frame *na.FrameData) error
 }

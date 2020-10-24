@@ -67,6 +67,7 @@ func (t *FrameForwardTable) Entries() []ForwardEntry {
 	return t.entries
 }
 
+// FrameForwarder forwards frame based on where this frame comes from and frame destination
 type FrameForwarder interface {
 	Forward(incoming types.HwAddr, frame na.Frame) error
 }
@@ -113,9 +114,9 @@ func (s *Switch) Attach(itf Interface) error {
 	return nil
 }
 
-// Forward receives id of interface it receives packet, address of sender
-// and packet to send to receiver. Based on id, address it determines whether to
-// broadcast packet or forward it to others, otherwise just discard packet.
+// Forward receives address of interface it receives frame, address of sender
+// and frame to send to receiver. Based on id, address it determines whether to
+// broadcast frame or forward it to others, otherwise just discard frame.
 func (s *Switch) Forward(incoming types.HwAddr, frame na.Frame) error {
 	s.Table.Update(incoming, frame.Src)
 	frm, err := s.frmEnc.Encode(frame)
@@ -127,13 +128,13 @@ func (s *Switch) Forward(incoming types.HwAddr, frame na.Frame) error {
 		return s.broadcastExcept(incoming, frm)
 	}
 	if entry.Incoming.Equal(incoming) {
-		log.Printf("discard packet from id: %s, src: %s, dest: %s\n", incoming, frame.Src, frame.Dest)
+		log.Printf("discard frame from id: %s, src: %s, dest: %s\n", incoming, frame.Src, frame.Dest)
 		return nil
 	}
 	return s.ItfList[entry.Incoming].Send(frm)
 }
 
-// broadcastExcept sends packet to other interfaces except the interface
+// broadcastExcept sends frame to other interfaces except the interface
 // with the id value given by parameter
 func (s *Switch) broadcastExcept(incoming types.HwAddr, frm []byte) error {
 	err := errors.Multiple()

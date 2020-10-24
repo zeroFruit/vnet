@@ -55,7 +55,7 @@ func assertFrame(t *testing.T, frm []byte, src string, dest string, payload stri
 }
 
 // TestSwitch_Forward_WhenAddressNotExist tests when there's no entry on switch table
-// in this case, when packet comes from sender with interface id 'x', then broadcasts
+// in this case, when frame comes from sender with interface id 'x', then broadcasts
 // packets to all interfaces except 'x'
 func TestSwitch_Forward_WhenAddressNotExist(t *testing.T) {
 	gob.Register(link.Addr(""))
@@ -95,7 +95,7 @@ func TestSwitch_Forward_WhenAddressNotExist(t *testing.T) {
 		Dest: link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
 	}); err != nil {
-		t.Fatalf("failed to forward packet: %v", err)
+		t.Fatalf("failed to forward frame: %v", err)
 	}
 
 	entry1, ok := table.LookupById(link.AddrFromStr("00-00-00-00-00-01"))
@@ -104,7 +104,7 @@ func TestSwitch_Forward_WhenAddressNotExist(t *testing.T) {
 	}
 }
 
-// TestSwitch_Forward_WhenReceiverExistOnSameId tests when packet comes from the same
+// TestSwitch_Forward_WhenReceiverExistOnSameId tests when frame comes from the same
 // interface id with the id that exists on table with key of receiver address
 func TestSwitch_Forward_WhenReceiverExistOnSameId(t *testing.T) {
 	gob.Register(link.Addr(""))
@@ -151,7 +151,7 @@ func TestSwitch_Forward_WhenReceiverExistOnSameId(t *testing.T) {
 		Dest: link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
 	}); err != nil {
-		t.Fatalf("failed to forward packet: %v", err)
+		t.Fatalf("failed to forward frame: %v", err)
 	}
 
 	entry1, ok := table.LookupById(link.AddrFromStr("00-00-00-00-00-01"))
@@ -160,7 +160,7 @@ func TestSwitch_Forward_WhenReceiverExistOnSameId(t *testing.T) {
 	}
 }
 
-// TestSwitch_Forward_WhenReceiverExistOnSameId tests when packet comes from the same
+// TestSwitch_Forward_WhenReceiverExistOnSameId tests when frame comes from the same
 // interface id with the id that exists on table with key of receiver address
 func TestSwitch_Forward_WhenReceiverExistOnDifferentId(t *testing.T) {
 	gob.Register(link.Addr(""))
@@ -207,7 +207,7 @@ func TestSwitch_Forward_WhenReceiverExistOnDifferentId(t *testing.T) {
 		Dest: link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
 	}); err != nil {
-		t.Fatalf("failed to forward packet: %v", err)
+		t.Fatalf("failed to forward frame: %v", err)
 	}
 
 	entry1, ok := table.LookupById(link.AddrFromStr("00-00-00-00-00-01"))

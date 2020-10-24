@@ -8,7 +8,7 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-func attachInterface(node *link.Node, itf link.Interface) {
+func attachInterface(node *link.Host, itf link.Interface) {
 	node.AttachInterface(itf)
 }
 
@@ -24,7 +24,7 @@ func attachLink(itf link.Interface, link *link.Link) {
 	}
 }
 
-func Type1() (node1 *link.Node, node2 *link.Node) {
+func Type1() (node1 *link.Host, node2 *link.Host) {
 	// setup node
 	node1 = link.NewNode()
 	node2 = link.NewNode()

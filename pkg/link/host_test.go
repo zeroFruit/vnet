@@ -70,7 +70,7 @@ func TestNodeSendReceive(t *testing.T) {
 	wg.Wait()
 }
 
-func attachInterface(t *testing.T, node *link.Node, itf link.Interface) {
+func attachInterface(t *testing.T, node *link.Host, itf link.Interface) {
 	node.AttachInterface(itf)
 }
 
@@ -80,7 +80,7 @@ func attachLink(t *testing.T, itf link.Interface, link *link.Link) {
 	}
 }
 
-func testNode(t *testing.T, node *link.Node, addr link.Addr, cost uint) {
+func testNode(t *testing.T, node *link.Host, addr link.Addr, cost uint) {
 	intf1_ := node.Interface
 	link1_ := intf1_.GetLink()
 	if link1_ == nil {

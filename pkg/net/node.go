@@ -37,13 +37,13 @@ func (i *Interface) Send(pkt []byte) error {
 }
 
 type Node struct {
-	hw      *link.Node
+	hw      *link.Host
 	ItfList []*Interface // TODO: need to be removed?
 	arp     arp.Service
 	plDec   arp.PayloadDecoder
 }
 
-func NewNode(hw *link.Node) *Node {
+func NewNode(hw *link.Host) *Node {
 	return &Node{
 		hw:      hw,
 		ItfList: make([]*Interface, 0),

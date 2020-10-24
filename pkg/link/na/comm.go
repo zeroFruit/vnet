@@ -24,6 +24,9 @@ type packetConn interface {
 	WriteTo(p []byte, addr net.Addr) (n int, err error)
 }
 
+// Card is abstracted network adapter part to simulate bytes transport on
+// physical cable. Node's interface uses this interface to send frame
+// between nodes.
 type Card interface {
 	Send(buf []byte, addr string) (time.Time, error)
 	Recv() <-chan *FrameData

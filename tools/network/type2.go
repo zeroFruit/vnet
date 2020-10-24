@@ -4,7 +4,7 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-func Type2() (node1 *link.Node, node2 *link.Node, node3 *link.Node, swch *link.Switch) {
+func Type2() (node1 *link.Host, node2 *link.Host, node3 *link.Host, swch *link.Switch) {
 	// setup node
 	node1 = link.NewNode()
 	node2 = link.NewNode()
