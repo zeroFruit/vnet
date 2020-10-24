@@ -16,10 +16,10 @@ type ForwardEntry struct {
 	Incoming types.HwAddr
 
 	// Addr is destination node address
-	Addr     types.HwAddr
+	Addr types.HwAddr
 
 	// Time is timestamp when this entry is created
-	Time     time.Time
+	Time time.Time
 }
 
 type FrameForwardTable struct {

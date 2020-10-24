@@ -2,8 +2,9 @@ package link_test
 
 import (
 	"encoding/gob"
-	"github.com/zeroFruit/vnet/pkg/link/na"
 	"testing"
+
+	"github.com/zeroFruit/vnet/pkg/link/na"
 
 	"github.com/zeroFruit/vnet/pkg/errors"
 	"github.com/zeroFruit/vnet/pkg/types"
@@ -91,8 +92,8 @@ func TestSwitch_Forward_WhenAddressNotExist(t *testing.T) {
 		t.Fatalf("failed to attach switch interface: %v", err)
 	}
 	if err := swch.Forward(link.AddrFromStr("00-00-00-00-00-01"), na.Frame{
-		Src: link.AddrFromStr("11-11-11-11-11-11"),
-		Dest: link.AddrFromStr("33-33-33-33-33-33"),
+		Src:     link.AddrFromStr("11-11-11-11-11-11"),
+		Dest:    link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
 	}); err != nil {
 		t.Fatalf("failed to forward frame: %v", err)
@@ -147,8 +148,8 @@ func TestSwitch_Forward_WhenReceiverExistOnSameId(t *testing.T) {
 		t.Fatalf("failed to attach switch interface: %v", err)
 	}
 	if err := swch.Forward(link.AddrFromStr("00-00-00-00-00-01"), na.Frame{
-		Src: link.AddrFromStr("11-11-11-11-11-11"),
-		Dest: link.AddrFromStr("33-33-33-33-33-33"),
+		Src:     link.AddrFromStr("11-11-11-11-11-11"),
+		Dest:    link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
 	}); err != nil {
 		t.Fatalf("failed to forward frame: %v", err)
@@ -203,8 +204,8 @@ func TestSwitch_Forward_WhenReceiverExistOnDifferentId(t *testing.T) {
 		t.Fatalf("failed to attach switch interface: %v", err)
 	}
 	if err := swch.Forward(link.AddrFromStr("00-00-00-00-00-01"), na.Frame{
-		Src: link.AddrFromStr("11-11-11-11-11-11"),
-		Dest: link.AddrFromStr("33-33-33-33-33-33"),
+		Src:     link.AddrFromStr("11-11-11-11-11-11"),
+		Dest:    link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
 	}); err != nil {
 		t.Fatalf("failed to forward frame: %v", err)
