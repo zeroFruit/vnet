@@ -24,17 +24,17 @@ func attachLink(itf link.Interface, link *link.Link) {
 	}
 }
 
-func Type1() (node1 *link.Host, node2 *link.Host) {
+func Type1() (host1 *link.Host, host2 *link.Host) {
 	// setup node
-	node1 = link.NewNode()
-	node2 = link.NewNode()
+	host1 = link.NewHost()
+	host2 = link.NewHost()
 
 	// setup interface
-	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), node1)
-	attachInterface(node1, intf1)
+	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), host1)
+	attachInterface(host1, intf1)
 
-	intf2 := link.NewInterface(40002, link.AddrFromStr("11-11-11-11-11-12"), node2)
-	attachInterface(node2, intf2)
+	intf2 := link.NewInterface(40002, link.AddrFromStr("11-11-11-11-11-12"), host2)
+	attachInterface(host2, intf2)
 
 	// setup link
 	link1 := link.NewLink(1)

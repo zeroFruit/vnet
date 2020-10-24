@@ -67,7 +67,7 @@ type Host struct {
 	frmDec     *FrameDecoder
 }
 
-func NewNode() *Host {
+func NewHost() *Host {
 	n := &Host{
 		quit:       make(chan struct{}),
 		Interface:  nil,

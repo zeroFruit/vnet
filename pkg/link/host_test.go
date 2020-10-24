@@ -19,8 +19,8 @@ func (h *mockNetHandler) Handle(pl []byte) {
 func TestNetworkTopology(t *testing.T) {
 	t.Skip()
 	// setup node
-	node1 := link.NewNode()
-	node2 := link.NewNode()
+	node1 := link.NewHost()
+	node2 := link.NewHost()
 
 	// setup interface
 	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), node1)
@@ -42,8 +42,8 @@ func TestNodeSendReceive(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 
-	sender := link.NewNode()
-	receiver := link.NewNode()
+	sender := link.NewHost()
+	receiver := link.NewHost()
 
 	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), sender)
 	intf2 := link.NewInterface(40002, link.AddrFromStr("11-11-11-11-11-12"), receiver)

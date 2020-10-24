@@ -34,7 +34,7 @@ func TestNode_UpdateAddr_WhenInterfaceExist(t *testing.T) {
 	li := &mockInterface{
 		Addr: "11-11-11-11-11-11",
 	}
-	ln := link.NewNode()
+	ln := link.NewHost()
 	ln.AttachInterface(li)
 
 	nn := net.NewNode(ln)
@@ -56,7 +56,7 @@ func TestNode_UpdateAddr_WhenInterfaceNotExist(t *testing.T) {
 	li := &mockInterface{
 		Addr: "11-11-11-11-11-11",
 	}
-	ln := link.NewNode()
+	ln := link.NewHost()
 	ln.AttachInterface(li)
 
 	nn := net.NewNode(ln)
@@ -75,7 +75,7 @@ func TestNode_UpdateAddr_WhenInterfaceNotExist(t *testing.T) {
 
 func TestNode_UpdateAddr_WhenHwInterfaceNotEnough(t *testing.T) {
 	// there's no hw interface attached
-	ln := link.NewNode()
+	ln := link.NewHost()
 
 	nn := net.NewNode(ln)
 

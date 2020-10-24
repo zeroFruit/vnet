@@ -4,24 +4,24 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-func Type3() (node1 *link.Host, node2 *link.Host, node3 *link.Host,
+func Type3() (host1 *link.Host, host2 *link.Host, host3 *link.Host,
 	swch1 *link.Switch, swch2 *link.Switch) {
 	// setup node
-	node1 = link.NewNode()
-	node2 = link.NewNode()
-	node3 = link.NewNode()
+	host1 = link.NewHost()
+	host2 = link.NewHost()
+	host3 = link.NewHost()
 	swch1 = link.NewSwitch()
 	swch2 = link.NewSwitch()
 
 	// setup interface
-	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), node1)
-	attachInterface(node1, intf1)
+	intf1 := link.NewInterface(40001, link.AddrFromStr("11-11-11-11-11-11"), host1)
+	attachInterface(host1, intf1)
 
-	intf2 := link.NewInterface(40002, link.AddrFromStr("22-22-22-22-22-22"), node2)
-	attachInterface(node2, intf2)
+	intf2 := link.NewInterface(40002, link.AddrFromStr("22-22-22-22-22-22"), host2)
+	attachInterface(host2, intf2)
 
-	intf3 := link.NewInterface(40003, link.AddrFromStr("33-33-33-33-33-33"), node3)
-	attachInterface(node3, intf3)
+	intf3 := link.NewInterface(40003, link.AddrFromStr("33-33-33-33-33-33"), host3)
+	attachInterface(host3, intf3)
 
 	sintf11 := link.NewInterface(40004, link.AddrFromStr("00-00-00-00-00-01"), swch1)
 	sintf12 := link.NewInterface(40005, link.AddrFromStr("00-00-00-00-00-02"), swch1)

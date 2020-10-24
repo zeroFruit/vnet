@@ -13,13 +13,13 @@ import (
 )
 
 func main() {
-	node1, node2 := network.Type1()
+	host1, host2 := network.Type1()
 
-	net1 := net.NewNode(node1)
-	net2 := net.NewNode(node2)
+	net1 := net.NewNode(host1)
+	net2 := net.NewNode(host2)
 
-	node1.RegisterNetHandler(net1)
-	node2.RegisterNetHandler(net2)
+	host1.RegisterNetHandler(net1)
+	host2.RegisterNetHandler(net2)
 
 	for _, fn := range []func() error{
 		func() error {
