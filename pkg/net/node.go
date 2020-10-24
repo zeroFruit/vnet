@@ -38,10 +38,14 @@ func (i *Interface) Send(pkt []byte) error {
 
 type Node struct {
 <<<<<<< HEAD
+<<<<<<< HEAD
 	hw      *link.Host
 =======
 	hw      *link.Node
 >>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
+=======
+	hw      *link.Host
+>>>>>>> b68f761... fix: add comments to link package
 	ItfList []*Interface // TODO: need to be removed?
 	arp     arp.Service
 	plDec   arp.PayloadDecoder
