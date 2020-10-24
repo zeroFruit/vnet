@@ -12,7 +12,9 @@ import (
 )
 
 type Interface interface {
-	AnonymInterface
+	GetLink() *Link
+	AttachLink(link *Link) error
+	Send(frame []byte) error
 	Address() types.HwAddr
 }
 

@@ -1,8 +1,9 @@
 package na
 
 import (
-	"github.com/zeroFruit/vnet/pkg/types"
 	"time"
+
+	"github.com/zeroFruit/vnet/pkg/types"
 )
 
 type Frame struct {
@@ -16,6 +17,8 @@ type FrameData struct {
 	Buf []byte
 
 	// Incoming represents interface address which receives this FrameData
-	Incoming  types.HwAddr
+	Incoming types.HwAddr
+
+	// Timestamp represents times when these frame data created
 	Timestamp time.Time
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/zeroFruit/vnet/test"
 	"time"
+
+	"github.com/zeroFruit/vnet/test"
 
 	"github.com/zeroFruit/vnet/pkg/link"
 
@@ -11,14 +12,6 @@ import (
 	"github.com/zeroFruit/vnet/tools/network"
 )
 
-/*
-        1.1.1.1                            1.1.1.2
-   11-11-11-11-11-11                  11-11-11-11-11-12
-       +-------+                          +-------+
-       | node1 ---------------------------- node2 |
-       |       |                          |       |
-       +-------+                          +-------+
-*/
 func main() {
 	node1, node2 := network.Type1()
 

@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+
 	"github.com/zeroFruit/vnet/pkg/link/na"
 
 	"github.com/zeroFruit/vnet/pkg/types"
@@ -54,14 +55,14 @@ func (l *Link) GetOtherInterface(addr types.HwAddr) (LinkInterface, error) {
 	return nil, fmt.Errorf("cannot find other interface link attached by %s", addr)
 }
 
-type NetFrameHandler interface {
-	Handle(frame na.Frame)
+type NetHandler interface {
+	Handle(pl []byte)
 }
 
 type Node struct {
 	quit       chan struct{}
 	Interface  Interface
-	netHandler NetFrameHandler
+	netHandler NetHandler
 	frmEnc     *FrameEncoder
 	frmDec     *FrameDecoder
 }
@@ -78,7 +79,7 @@ func NewNode() *Node {
 	return n
 }
 
-func (n *Node) RegisterNetHandler(handler NetFrameHandler) {
+func (n *Node) RegisterNetHandler(handler NetHandler) {
 	n.netHandler = handler
 }
 
@@ -86,10 +87,10 @@ func (n *Node) AttachInterface(itf Interface) {
 	n.Interface = itf
 }
 
-func (n *Node) Send(addr types.HwAddr, pl []byte) error {
+func (n *Node) Send(dest types.HwAddr, pl []byte) error {
 	frame, err := n.frmEnc.Encode(na.Frame{
 		Src:     n.Interface.Address(),
-		Dest:    addr,
+		Dest:    dest,
 		Payload: pl,
 	})
 	if err != nil {
@@ -109,7 +110,7 @@ func (n *Node) handle(fd *na.FrameData) error {
 	if err != nil {
 		return err
 	}
-	n.netHandler.Handle(frame)
+	n.netHandler.Handle(frame.Payload)
 	return nil
 }
 

@@ -3,7 +3,6 @@ package net
 import (
 	"errors"
 	"fmt"
-	"github.com/zeroFruit/vnet/pkg/link/na"
 	"log"
 
 	"github.com/zeroFruit/vnet/pkg/arp"
@@ -113,8 +112,8 @@ func (n *Node) RegisterArp(arp arp.Service) {
 	n.arp = arp
 }
 
-func (n *Node) Handle(frame na.Frame) {
-	payload, err := n.plDec.Decode(frame.Payload)
+func (n *Node) Handle(pl []byte) {
+	payload, err := n.plDec.Decode(pl)
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)

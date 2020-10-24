@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+
 	"github.com/zeroFruit/vnet/pkg/link/na"
 )
 

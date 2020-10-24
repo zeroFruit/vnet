@@ -3,6 +3,8 @@ package network
 import (
 	"fmt"
 
+	"github.com/zeroFruit/vnet/test"
+
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
@@ -10,20 +12,18 @@ func attachInterface(node *link.Node, itf link.Interface) {
 	node.AttachInterface(itf)
 }
 
-func attachLink(itf link.AnonymInterface, link *link.Link) {
+func attachSwchInterface(swch *link.Switch, itf link.Interface) {
+	test.ShouldSuccess(func() error {
+		return swch.Attach(itf)
+	})
+}
+
+func attachLink(itf link.Interface, link *link.Link) {
 	if err := itf.AttachLink(link); err != nil {
 		panic(fmt.Sprintf("failed to attach link: %v", err))
 	}
 }
 
-/*
-
- 11-11-11-11-11-11                  11-11-11-11-11-12
-     +-------+                          +-------+
-     | node1 ---------------------------- node2 |
-     |       |                          |       |
-     +-------+                          +-------+
-*/
 func Type1() (node1 *link.Node, node2 *link.Node) {
 	// setup node
 	node1 = link.NewNode()

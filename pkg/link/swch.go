@@ -2,31 +2,37 @@ package link
 
 import (
 	"fmt"
-	"github.com/zeroFruit/vnet/pkg/errors"
-	"github.com/zeroFruit/vnet/pkg/link/na"
 	"log"
 	"time"
+
+	"github.com/zeroFruit/vnet/pkg/errors"
+	"github.com/zeroFruit/vnet/pkg/link/na"
 
 	"github.com/zeroFruit/vnet/pkg/types"
 )
 
-type SwitchEntry struct {
-	Id   string
-	Addr types.HwAddr
-	Time time.Time
+type ForwardEntry struct {
+	// Incoming is interface hardware address attached to switch
+	Incoming types.HwAddr
+
+	// Addr is destination node address
+	Addr     types.HwAddr
+
+	// Time is timestamp when this entry is created
+	Time     time.Time
 }
 
-type SwitchTable struct {
-	entries []SwitchEntry
+type FrameForwardTable struct {
+	entries []ForwardEntry
 }
 
-func NewSwitchTable() *SwitchTable {
-	return &SwitchTable{
-		entries: make([]SwitchEntry, 0),
+func NewSwitchTable() *FrameForwardTable {
+	return &FrameForwardTable{
+		entries: make([]ForwardEntry, 0),
 	}
 }
 
-func (t *SwitchTable) Update(id string, addr types.HwAddr) {
+func (t *FrameForwardTable) Update(incoming types.HwAddr, addr types.HwAddr) {
 	idxToRemove := -1
 	for i, e := range t.entries {
 		if e.Addr.Equal(addr) {
@@ -36,122 +42,104 @@ func (t *SwitchTable) Update(id string, addr types.HwAddr) {
 	if idxToRemove != -1 {
 		t.entries = append(t.entries[:idxToRemove], t.entries[idxToRemove+1:]...)
 	}
-	t.entries = append(t.entries, SwitchEntry{Id: id, Addr: addr, Time: time.Now()})
+	t.entries = append(t.entries, ForwardEntry{Incoming: incoming, Addr: addr, Time: time.Now()})
 }
 
-func (t *SwitchTable) LookupByAddr(key types.HwAddr) (SwitchEntry, bool) {
+func (t *FrameForwardTable) LookupByAddr(key types.HwAddr) (ForwardEntry, bool) {
 	for _, e := range t.entries {
 		if e.Addr.Equal(key) {
 			return e, true
 		}
 	}
-	return SwitchEntry{}, false
+	return ForwardEntry{}, false
 }
 
-func (t *SwitchTable) LookupById(id string) (SwitchEntry, bool) {
+func (t *FrameForwardTable) LookupById(incoming types.HwAddr) (ForwardEntry, bool) {
 	for _, e := range t.entries {
-		if e.Id == id {
+		if e.Incoming.Equal(incoming) {
 			return e, true
 		}
 	}
-	return SwitchEntry{}, false
+	return ForwardEntry{}, false
 }
 
-func (t *SwitchTable) Entries() []SwitchEntry {
+func (t *FrameForwardTable) Entries() []ForwardEntry {
 	return t.entries
 }
 
-type PacketForwarder interface {
-	Forward(id string, src types.HwAddr, dest types.HwAddr, pkt []byte) error
-}
-
-type AnonymInterface interface {
-	GetLink() *Link
-	AttachLink(link *Link) error
-	Send(frame []byte) error
-}
-
-type UDPBasedSwitchInterface struct {
-	*UDPBasedInterface
-	id        string
-	forwarder PacketForwarder
-	frmDec    *FrameDecoder
-}
-
-func NewSwitchInterface(port int, hwAddr types.HwAddr, id string, forwarder PacketForwarder) *UDPBasedSwitchInterface {
-	si := &UDPBasedSwitchInterface{
-		id:        id,
-		forwarder: forwarder,
-		frmDec:    NewFrameDecoder(),
-	}
-	i := NewInterface(port, hwAddr, si.handler)
-	si.UDPBasedInterface = i
-	return si
-}
-
-// handle receives datagram from UDPBasedInterface than forward it to PacketForwarder
-func (si *UDPBasedSwitchInterface) handle(fd *na.FrameData) error {
-	frame, err := si.frmDec.Decode(fd.Buf)
-	if err != nil {
-		return err
-	}
-	return si.forwarder.Forward(si.id, frame.Src, frame.Dest, frame.Payload)
+type FrameForwarder interface {
+	Forward(incoming types.HwAddr, frame na.Frame) error
 }
 
 type Switch struct {
-	ItfList map[string]AnonymInterface
-	table   *SwitchTable
+	ItfList map[types.HwAddr]Interface
+	Table   *FrameForwardTable
+	frmDec  *FrameDecoder
+	frmEnc  *FrameEncoder
 	quit    chan struct{}
 }
 
 func NewSwitch() *Switch {
 	return &Switch{
-		ItfList: make(map[string]AnonymInterface),
-		table:   NewSwitchTable(),
+		ItfList: make(map[types.HwAddr]Interface),
+		Table:   NewSwitchTable(),
+		frmDec:  NewFrameDecoder(),
+		frmEnc:  NewFrameEncoder(),
 		quit:    make(chan struct{}),
 	}
 }
 
-func NewSwitchWithTable(table *SwitchTable) *Switch {
+func NewSwitchWithTable(table *FrameForwardTable) *Switch {
 	return &Switch{
-		ItfList: make(map[string]AnonymInterface),
-		table:   table,
+		ItfList: make(map[types.HwAddr]Interface),
+		Table:   table,
 		quit:    make(chan struct{}),
 	}
 }
 
-func (s *Switch) Attach(id string, itf AnonymInterface) error {
-	if _, ok := s.ItfList[id]; ok {
-		return fmt.Errorf("already exist interface: %s", id)
+func (s *Switch) handle(fd *na.FrameData) error {
+	frame, err := s.frmDec.Decode(fd.Buf)
+	if err != nil {
+		return err
 	}
-	s.ItfList[id] = itf
+	return s.Forward(fd.Incoming, frame)
+}
+
+func (s *Switch) Attach(itf Interface) error {
+	if _, ok := s.ItfList[itf.Address()]; ok {
+		return fmt.Errorf("already exist interface: %s", itf.Address())
+	}
+	s.ItfList[itf.Address()] = itf
 	return nil
 }
 
 // Forward receives id of interface it receives packet, address of sender
 // and packet to send to receiver. Based on id, address it determines whether to
 // broadcast packet or forward it to others, otherwise just discard packet.
-func (s *Switch) Forward(id string, src types.HwAddr, dest types.HwAddr, pkt []byte) error {
-	s.table.Update(id, src)
-
-	entry, ok := s.table.LookupByAddr(dest)
-	if !ok {
-		return s.broadcastExcept(id, pkt)
+func (s *Switch) Forward(incoming types.HwAddr, frame na.Frame) error {
+	s.Table.Update(incoming, frame.Src)
+	frm, err := s.frmEnc.Encode(frame)
+	if err != nil {
+		return err
 	}
-	if entry.Id == id {
-		log.Printf("discard packet from id: %s, src: %s, dest: %s\n", id, src, dest)
+	entry, ok := s.Table.LookupByAddr(frame.Dest)
+	if !ok {
+		return s.broadcastExcept(incoming, frm)
+	}
+	if entry.Incoming.Equal(incoming) {
+		log.Printf("discard packet from id: %s, src: %s, dest: %s\n", incoming, frame.Src, frame.Dest)
 		return nil
 	}
-	return s.ItfList[entry.Id].Send(pkt)
+	return s.ItfList[entry.Incoming].Send(frm)
 }
 
 // broadcastExcept sends packet to other interfaces except the interface
 // with the id value given by parameter
-func (s *Switch) broadcastExcept(id string, pkt []byte) error {
+func (s *Switch) broadcastExcept(incoming types.HwAddr, frm []byte) error {
 	err := errors.Multiple()
-	for itfId, itf := range s.ItfList {
-		if itfId != id {
-			err = err.Happen(itf.Send(pkt))
+	for addr, itf := range s.ItfList {
+		if !addr.Equal(incoming) {
+			err = err.Happen(itf.Send(frm))
 		}
 	}
 	return err.Return()

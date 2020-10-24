@@ -13,9 +13,9 @@ type Service interface {
 }
 
 type service struct {
-	node  types.NetNode
-	table *Table
-	plEnc PayloadEncoder
+	node   types.NetNode
+	table  *Table
+	plEnc  PayloadEncoder
 	frmEnc *link.FrameEncoder
 }
 
@@ -30,9 +30,9 @@ func New(node types.NetNode, plEnc PayloadEncoder) Service {
 
 func NewWithTable(node types.NetNode, plEnc PayloadEncoder, table *Table) Service {
 	return &service{
-		node:  node,
-		table: table,
-		plEnc: plEnc,
+		node:   node,
+		table:  table,
+		plEnc:  plEnc,
 		frmEnc: link.NewFrameEncoder(),
 	}
 }
@@ -48,8 +48,8 @@ func (s *service) Broadcast(tna types.NetAddr) error {
 			continue
 		}
 		frame, err := s.frmEnc.Encode(na.Frame{
-			Src: itf.HwAddress(),
-			Dest: link.BroadcastAddr,
+			Src:     itf.HwAddress(),
+			Dest:    link.BroadcastAddr,
 			Payload: pl,
 		})
 		if err != nil {
@@ -88,8 +88,8 @@ func (s *service) Recv(payload Payload) error {
 		return err
 	}
 	frame, err := s.frmEnc.Encode(na.Frame{
-		Src: itf.HwAddress(),
-		Dest: payload.SHwAddr,
+		Src:     itf.HwAddress(),
+		Dest:    payload.SHwAddr,
 		Payload: pl,
 	})
 	if err != nil {
