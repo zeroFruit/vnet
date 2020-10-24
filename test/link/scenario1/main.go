@@ -24,13 +24,13 @@ func main() {
 	node1, node2 := network.Type1()
 	node2.RegisterNetHandler(&test.MockNetHandler{
 		HandleFunc: func(pl []byte) {
-			if string(pl) != "data" {
+			if string(pl) != "hello" {
 				test.Fatalf("expected data is 'data', but got '%s'", string(pl))
 			}
 			wg.Done()
 		},
 	})
-	if err := node1.Send(link.AddrFromStr("11-11-11-11-11-12"), []byte("data")); err != nil {
+	if err := node1.Send(link.AddrFromStr("11-11-11-11-11-12"), []byte("hello")); err != nil {
 		test.Fatalf("failed to send payload: %v", err)
 	}
 	if test.WaitTimeout(wg, 1*time.Second) {
