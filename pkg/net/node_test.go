@@ -22,11 +22,19 @@ func (i *mockInterface) AttachLink(link *link.Link) error {
 	return nil
 }
 
-func (i *mockInterface) Send(pkt []byte) error {
+func (i *mockInterface) Transmit(pkt []byte) error {
 	return nil
 }
 
+func (i *mockInterface) Id() link.Id {
+	return link.Id(i.Addr.String())
+}
+
 func (i *mockInterface) Address() types.HwAddr {
+	return i.Addr
+}
+
+func (i *mockInterface) InternalAddress() link.Addr {
 	return i.Addr
 }
 

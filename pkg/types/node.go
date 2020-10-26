@@ -1,7 +1,7 @@
 package types
 
 type NetInterface interface {
-	Send(pkt []byte) error
+	Transmit(pkt []byte) error
 	HwAddress() HwAddr
 	NetAddress() NetAddr
 }

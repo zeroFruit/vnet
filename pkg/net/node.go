@@ -32,8 +32,8 @@ func (i *Interface) NetAddress() types.NetAddr {
 	return i.Addr
 }
 
-func (i *Interface) Send(pkt []byte) error {
-	return i.hw.Send(pkt)
+func (i *Interface) Transmit(pkt []byte) error {
+	return i.hw.Transmit(pkt)
 }
 
 type Node struct {
@@ -102,7 +102,7 @@ func (n *Node) Send(addr Addr, pkt []byte) error {
 	if err != nil {
 		return err
 	}
-	if err := itf.Send(pkt); err != nil {
+	if err := itf.Transmit(pkt); err != nil {
 		return err
 	}
 	return nil

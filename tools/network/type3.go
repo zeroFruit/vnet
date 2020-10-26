@@ -23,33 +23,33 @@ func Type3() (host1 *link.Host, host2 *link.Host, host3 *link.Host,
 	intf3 := link.NewInterface(40003, link.AddrFromStr("33-33-33-33-33-33"), host3)
 	attachInterface(host3, intf3)
 
-	sintf11 := link.NewInterface(40004, link.AddrFromStr("00-00-00-00-00-01"), swch1)
-	sintf12 := link.NewInterface(40005, link.AddrFromStr("00-00-00-00-00-02"), swch1)
-	sintf13 := link.NewInterface(40006, link.AddrFromStr("00-00-00-00-00-03"), swch1)
-	attachSwchInterface(swch1, sintf11)
-	attachSwchInterface(swch1, sintf12)
-	attachSwchInterface(swch1, sintf13)
+	sp11 := link.NewSwitchPort(40004, swch1)
+	sp12 := link.NewSwitchPort(40005, swch1)
+	sp13 := link.NewSwitchPort(40006, swch1)
+	attachSwchInterface(swch1, sp11, "1")
+	attachSwchInterface(swch1, sp12, "2")
+	attachSwchInterface(swch1, sp13, "3")
 
-	sintf21 := link.NewInterface(40007, link.AddrFromStr("00-00-00-00-00-11"), swch2)
-	sintf22 := link.NewInterface(40008, link.AddrFromStr("00-00-00-00-00-12"), swch2)
-	attachSwchInterface(swch2, sintf21)
-	attachSwchInterface(swch2, sintf22)
+	sp21 := link.NewSwitchPort(40007, swch2)
+	sp22 := link.NewSwitchPort(40008, swch2)
+	attachSwchInterface(swch2, sp21, "1")
+	attachSwchInterface(swch2, sp22, "2")
 
 	// setup link
 	link1 := link.NewLink(1)
 	attachLink(intf1, link1)
-	attachLink(sintf11, link1)
+	attachLink(sp11, link1)
 
 	link2 := link.NewLink(1)
 	attachLink(intf2, link2)
-	attachLink(sintf12, link2)
+	attachLink(sp12, link2)
 
 	link3 := link.NewLink(1)
-	attachLink(sintf13, link3)
-	attachLink(sintf21, link3)
+	attachLink(sp13, link3)
+	attachLink(sp21, link3)
 
 	link4 := link.NewLink(1)
-	attachLink(sintf22, link4)
+	attachLink(sp22, link4)
 	attachLink(intf3, link4)
 	return
 }

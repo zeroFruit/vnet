@@ -7,30 +7,38 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link/na"
 
 	"github.com/zeroFruit/vnet/pkg/errors"
-	"github.com/zeroFruit/vnet/pkg/types"
-
 	"github.com/zeroFruit/vnet/pkg/link"
 )
 
-type mockInterface struct {
+type mockSwitchPort struct {
 	sendFunc func(pkt []byte) error
-	addr     types.HwAddr
+	id       link.Id
 }
 
-func (si *mockInterface) GetLink() *link.Link {
+func (si *mockSwitchPort) GetLink() *link.Link {
 	return nil
 }
 
-func (si *mockInterface) AttachLink(link *link.Link) error {
+func (si *mockSwitchPort) AttachLink(link *link.Link) error {
 	return nil
 }
 
-func (si *mockInterface) Send(pkt []byte) error {
+func (si *mockSwitchPort) Transmit(pkt []byte) error {
 	return si.sendFunc(pkt)
 }
 
-func (si *mockInterface) Address() types.HwAddr {
-	return si.addr
+func (si *mockSwitchPort) Id() link.Id {
+	return si.id
+}
+
+func (si *mockSwitchPort) InternalAddress() link.Addr {
+	return ""
+}
+
+func (si *mockSwitchPort) Register(id link.Id) {}
+
+func (si *mockSwitchPort) Registered() bool {
+	return true
 }
 
 func decodeFrame(t *testing.T, frm []byte) na.Frame {
@@ -63,35 +71,35 @@ func TestSwitch_Forward_WhenAddressNotExist(t *testing.T) {
 
 	table := link.NewSwitchTable()
 	swch := link.NewSwitchWithTable(table)
-	sitf1 := &mockInterface{
+	sp1 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			t.Fail()
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-01"),
+		id: link.Id("1"),
 	}
-	sitf2 := &mockInterface{
+	sp2 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			assertFrame(t, frm, "11-11-11-11-11-11", "33-33-33-33-33-33", "hello")
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-02"),
+		id: link.Id("2"),
 	}
-	sitf3 := &mockInterface{
+	sp3 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			assertFrame(t, frm, "11-11-11-11-11-11", "33-33-33-33-33-33", "hello")
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-03"),
+		id: link.Id("3"),
 	}
 	if err := errors.Multiple().
-		Happen(swch.Attach(sitf1)).
-		Happen(swch.Attach(sitf2)).
-		Happen(swch.Attach(sitf3)).
-		Return(); err != nil && len(swch.ItfList) != 3 {
+		Happen(swch.Attach(sp1)).
+		Happen(swch.Attach(sp2)).
+		Happen(swch.Attach(sp3)).
+		Return(); err != nil || len(swch.PortList) != 3 {
 		t.Fatalf("failed to attach switch interface: %v", err)
 	}
-	if err := swch.Forward(link.AddrFromStr("00-00-00-00-00-01"), na.Frame{
+	if err := swch.Forward("1", na.Frame{
 		Src:     link.AddrFromStr("11-11-11-11-11-11"),
 		Dest:    link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
@@ -99,7 +107,7 @@ func TestSwitch_Forward_WhenAddressNotExist(t *testing.T) {
 		t.Fatalf("failed to forward frame: %v", err)
 	}
 
-	entry1, ok := table.LookupById(link.AddrFromStr("00-00-00-00-00-01"))
+	entry1, ok := table.LookupById("1")
 	if !ok && !entry1.Addr.Equal(link.AddrFromStr("11-11-11-11-11-11")) {
 		t.Fatalf("expect '11-11-11-11-11-11' to exist in table, but not exist")
 	}
@@ -112,42 +120,42 @@ func TestSwitch_Forward_WhenReceiverExistOnSameId(t *testing.T) {
 
 	table := link.NewSwitchTable()
 
-	// dest address exists on table with interface addr "00-00-00-00-00-01"
-	table.Update(link.AddrFromStr("00-00-00-00-00-01"), link.AddrFromStr("33-33-33-33-33-33"))
+	// dest address exists on table with interface addr "1"
+	table.Update("1", link.AddrFromStr("33-33-33-33-33-33"))
 
 	swch := link.NewSwitchWithTable(table)
-	sitf1 := &mockInterface{
+	sp1 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			// frame must be discard
 			t.Fail()
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-01"),
+		id: link.Id("1"),
 	}
-	sitf2 := &mockInterface{
+	sp2 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			// frame must be discard
 			t.Fail()
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-02"),
+		id: link.Id("2"),
 	}
-	sitf3 := &mockInterface{
+	sp3 := &mockSwitchPort{
 		sendFunc: func(pkt []byte) error {
 			// frame must be discard
 			t.Fail()
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-03"),
+		id: link.Id("3"),
 	}
 	if err := errors.Multiple().
-		Happen(swch.Attach(sitf1)).
-		Happen(swch.Attach(sitf2)).
-		Happen(swch.Attach(sitf3)).
-		Return(); err != nil && len(swch.ItfList) != 3 {
+		Happen(swch.Attach(sp1)).
+		Happen(swch.Attach(sp2)).
+		Happen(swch.Attach(sp3)).
+		Return(); err != nil || len(swch.PortList) != 3 {
 		t.Fatalf("failed to attach switch interface: %v", err)
 	}
-	if err := swch.Forward(link.AddrFromStr("00-00-00-00-00-01"), na.Frame{
+	if err := swch.Forward("1", na.Frame{
 		Src:     link.AddrFromStr("11-11-11-11-11-11"),
 		Dest:    link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
@@ -155,7 +163,7 @@ func TestSwitch_Forward_WhenReceiverExistOnSameId(t *testing.T) {
 		t.Fatalf("failed to forward frame: %v", err)
 	}
 
-	entry1, ok := table.LookupById(link.AddrFromStr("00-00-00-00-00-01"))
+	entry1, ok := table.LookupById("1")
 	if !ok && !entry1.Addr.Equal(link.AddrFromStr("11-11-11-11-11-11")) {
 		t.Fatalf("expect '11-11-11-11-11-11' to exist in table, but not exist")
 	}
@@ -169,41 +177,41 @@ func TestSwitch_Forward_WhenReceiverExistOnDifferentId(t *testing.T) {
 	table := link.NewSwitchTable()
 
 	// dest address exists on table with interface id "2"
-	table.Update(link.AddrFromStr("00-00-00-00-00-02"), link.AddrFromStr("33-33-33-33-33-33"))
+	table.Update("2", link.AddrFromStr("33-33-33-33-33-33"))
 
 	swch := link.NewSwitchWithTable(table)
-	sitf1 := &mockInterface{
+	sp1 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			// frame must be discard
 			t.Fail()
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-01"),
+		id: link.Id("1"),
 	}
-	sitf2 := &mockInterface{
+	sp2 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			// frame need to be forwarded
 			assertFrame(t, frm, "11-11-11-11-11-11", "33-33-33-33-33-33", "hello")
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-02"),
+		id: link.Id("2"),
 	}
-	sitf3 := &mockInterface{
+	sp3 := &mockSwitchPort{
 		sendFunc: func(frm []byte) error {
 			// frame must be discard
 			t.Fail()
 			return nil
 		},
-		addr: link.AddrFromStr("00-00-00-00-00-03"),
+		id: link.Id("3"),
 	}
 	if err := errors.Multiple().
-		Happen(swch.Attach(sitf1)).
-		Happen(swch.Attach(sitf2)).
-		Happen(swch.Attach(sitf3)).
-		Return(); err != nil && len(swch.ItfList) != 3 {
+		Happen(swch.Attach(sp1)).
+		Happen(swch.Attach(sp2)).
+		Happen(swch.Attach(sp3)).
+		Return(); err != nil || len(swch.PortList) != 3 {
 		t.Fatalf("failed to attach switch interface: %v", err)
 	}
-	if err := swch.Forward(link.AddrFromStr("00-00-00-00-00-01"), na.Frame{
+	if err := swch.Forward("1", na.Frame{
 		Src:     link.AddrFromStr("11-11-11-11-11-11"),
 		Dest:    link.AddrFromStr("33-33-33-33-33-33"),
 		Payload: []byte("hello"),
@@ -211,7 +219,7 @@ func TestSwitch_Forward_WhenReceiverExistOnDifferentId(t *testing.T) {
 		t.Fatalf("failed to forward frame: %v", err)
 	}
 
-	entry1, ok := table.LookupById(link.AddrFromStr("00-00-00-00-00-01"))
+	entry1, ok := table.LookupById("1")
 	if !ok && !entry1.Addr.Equal(link.AddrFromStr("11-11-11-11-11-11")) {
 		t.Fatalf("expect '11-11-11-11-11-11' to exist in table, but not exist")
 	}

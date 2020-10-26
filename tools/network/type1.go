@@ -12,14 +12,15 @@ func attachInterface(node *link.Host, itf link.Interface) {
 	node.AttachInterface(itf)
 }
 
-func attachSwchInterface(swch *link.Switch, itf link.Interface) {
+func attachSwchInterface(swch *link.Switch, port link.Port, id link.Id) {
 	test.ShouldSuccess(func() error {
-		return swch.Attach(itf)
+		port.Register(id)
+		return swch.Attach(port)
 	})
 }
 
-func attachLink(itf link.Interface, link *link.Link) {
-	if err := itf.AttachLink(link); err != nil {
+func attachLink(ep link.EndPoint, link *link.Link) {
+	if err := ep.AttachLink(link); err != nil {
 		panic(fmt.Sprintf("failed to attach link: %v", err))
 	}
 }

@@ -56,7 +56,7 @@ func (s *service) Broadcast(tna types.NetAddr) error {
 			errs = errs.Happen(err)
 			continue
 		}
-		if err := itf.Send(frame); err != nil {
+		if err := itf.Transmit(frame); err != nil {
 			errs = errs.Happen(err)
 		}
 	}
@@ -95,5 +95,5 @@ func (s *service) Recv(payload Payload) error {
 	if err != nil {
 		return err
 	}
-	return itf.Send(frame)
+	return itf.Transmit(frame)
 }

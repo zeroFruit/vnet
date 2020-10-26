@@ -21,12 +21,12 @@ func Type2() (host1 *link.Host, host2 *link.Host, host3 *link.Host, swch *link.S
 	intf3 := link.NewInterface(40003, link.AddrFromStr("33-33-33-33-33-33"), host3)
 	attachInterface(host3, intf3)
 
-	sintf1 := link.NewInterface(40004, link.AddrFromStr("00-00-00-00-00-01"), swch)
-	sintf2 := link.NewInterface(40005, link.AddrFromStr("00-00-00-00-00-02"), swch)
-	sintf3 := link.NewInterface(40006, link.AddrFromStr("00-00-00-00-00-03"), swch)
-	attachSwchInterface(swch, sintf1)
-	attachSwchInterface(swch, sintf2)
-	attachSwchInterface(swch, sintf3)
+	sintf1 := link.NewSwitchPort(40004, swch)
+	sintf2 := link.NewSwitchPort(40005, swch)
+	sintf3 := link.NewSwitchPort(40006, swch)
+	attachSwchInterface(swch, sintf1, "1")
+	attachSwchInterface(swch, sintf2, "2")
+	attachSwchInterface(swch, sintf3, "3")
 
 	// setup link
 	link1 := link.NewLink(1)

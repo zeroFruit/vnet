@@ -26,7 +26,7 @@ func main() {
 	host1, host2, host3, swch := network.Type2()
 
 	// pre-define switch table
-	swch.Table.Update(link.AddrFromStr("00-00-00-00-00-02"), link.AddrFromStr("22-22-22-22-22-22"))
+	swch.Table.Update("2", link.AddrFromStr("22-22-22-22-22-22"))
 
 	// setup mock network layer handler
 	host1.RegisterNetHandler(&test.MockNetHandler{

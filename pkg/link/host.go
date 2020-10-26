@@ -9,22 +9,36 @@ import (
 	"github.com/zeroFruit/vnet/pkg/types"
 )
 
-type LinkInterface interface {
-	Interface
+type Id string
+
+func (i Id) Equal(id Id) bool {
+	return i == id
+}
+
+func (i Id) Empty() bool {
+	return i == ""
+}
+
+// EndPoint represents point of link. Link is the channel to pass data to end-point
+// either side to the opposite
+type EndPoint interface {
+	Id() Id
 	InternalAddress() Addr
+	GetLink() *Link
+	AttachLink(link *Link) error
 }
 
 type Link struct {
-	cost  uint
-	intf1 LinkInterface
-	intf2 LinkInterface
+	cost uint
+	ep1  EndPoint
+	ep2  EndPoint
 }
 
 func NewLink(cost uint) *Link {
 	return &Link{
-		cost:  cost,
-		intf1: nil,
-		intf2: nil,
+		cost: cost,
+		ep1:  nil,
+		ep2:  nil,
 	}
 }
 
@@ -32,26 +46,26 @@ func (l *Link) GetCost() uint {
 	return l.cost
 }
 
-func (l *Link) SetInterface(itf LinkInterface) error {
-	if l.intf1 == nil {
-		l.intf1 = itf
+func (l *Link) AttachEndpoint(ep EndPoint) error {
+	if l.ep1 == nil {
+		l.ep1 = ep
 		return nil
 	}
-	if l.intf2 == nil {
-		l.intf2 = itf
+	if l.ep2 == nil {
+		l.ep2 = ep
 		return nil
 	}
-	return fmt.Errorf("link is full with interfaces between %s, %s", l.intf1.Address(), l.intf2.Address())
+	return fmt.Errorf("link is full with interfaces between %s, %s", l.ep1.Id(), l.ep2.Id())
 }
 
-func (l *Link) GetOtherInterface(addr types.HwAddr) (LinkInterface, error) {
-	if l.intf1.Address().Equal(addr) {
-		return l.intf2, nil
+func (l *Link) Opposite(id Id) (EndPoint, error) {
+	if l.ep1.Id().Equal(id) {
+		return l.ep2, nil
 	}
-	if l.intf2.Address().Equal(addr) {
-		return l.intf1, nil
+	if l.ep2.Id().Equal(id) {
+		return l.ep1, nil
 	}
-	return nil, fmt.Errorf("cannot find other interface link attached by %s", addr)
+	return nil, fmt.Errorf("cannot find other interface link attached by %s", id)
 }
 
 // NetHandler receives serialized frame payload. With this, doing some high-level protocol
@@ -96,7 +110,7 @@ func (n *Host) Send(dest types.HwAddr, pl []byte) error {
 	if err != nil {
 		return err
 	}
-	if err := n.Interface.Send(frame); err != nil {
+	if err := n.Interface.Transmit(frame); err != nil {
 		return err
 	}
 	return nil

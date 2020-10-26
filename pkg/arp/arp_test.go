@@ -17,7 +17,7 @@ type mockNetInterface struct {
 	sendFunc func(pkt []byte) error
 }
 
-func (i *mockNetInterface) Send(pkt []byte) error {
+func (i *mockNetInterface) Transmit(pkt []byte) error {
 	return i.sendFunc(pkt)
 }
 func (i *mockNetInterface) HwAddress() types.HwAddr {
