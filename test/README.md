@@ -8,7 +8,7 @@
 
 ![vnet_test_network_type_1](../images/vnet_test_network_type_1.png)
 
-Type-1 network is very simple. There's two host on the network each has hardware address "11-11-11-11-11-11", "11-11-11-11-11-12" respectively. And those are connected on single link with interface
+Type-1 network is very simple. There's two host on the network each has hardware address "11-11-11-11-11-11", "11-11-11-11-11-12" respectively. And those are connected on single link with port
 
 
 
@@ -24,7 +24,7 @@ Type-2 network has one switch "switch1" and three host ("host1", "host2", "host3
 
 ![vnet_test_network_type_3](../images/vnet_test_network_type_3.png)
 
-Type-3 network has two switches ("switch1", "switch2") and three hosts ("host1", "host2", "host3"). On "switch1", there's three interfaces and each connected with "host1", "host2", "switch2". And on "switch2", there's two interfaces and each connected with "switch1" and "host3"
+Type-3 network has two switches ("switch1", "switch2") and three hosts ("host1", "host2", "host3"). On "switch1", there's three ports and each connected with "host1", "host2", "switch2". And on "switch2", there's two ports and each connected with "switch1" and "host3"
 
 
 
@@ -51,10 +51,10 @@ Type-3 network has two switches ("switch1", "switch2") and three hosts ("host1",
 
 #### Description
 
-- The purpose of sceanrio-2 is to veryify when switch has no forward data on table, it broadcasts frame to interfaces it has
+- The purpose of sceanrio-2 is to veryify when switch has no forward data on table, it broadcasts frame to ports it has
 - "switch1" has forwarding table but it is empty. 
 - "host1" tries to send frame to "host2"
-- when "switch1" receives frame from "host1", first update forwarding table then "switch1" broadcasts frame to other interfaces except interface which is attached to "host1"
+- when "switch1" receives frame from "host1", first update forwarding table then "switch1" broadcasts frame to other ports except port which is attached to "host1"
 - "host2", "host3" have to receive frame sent by "host1"
 
 
@@ -74,7 +74,7 @@ Type-3 network has two switches ("switch1", "switch2") and three hosts ("host1",
 
 
 
-### Sceanrio-4: discard frame when target exists on same interface where it receives frame
+### Sceanrio-4: discard frame when target exists on same port where it receives frame
 
 #### Network Type
 
@@ -82,12 +82,12 @@ Type-3 network has two switches ("switch1", "switch2") and three hosts ("host1",
 
 #### Description
 
-- The purpose of sceanrio-3 is to veryify when switch receives frame from the interface and switch forwarding table says target host exists on the same interface where the frame comes from, then switch discard that frame.
+- The purpose of sceanrio-3 is to veryify when switch receives frame from the port and switch forwarding table says target host exists on the same port where the frame comes from, then switch discard that frame.
 - "switch1" has forwarding table with empty state
-- "switch2" has forwarding table and has information about "host2" exists on interface "00-00-00-00-00-11".
+- "switch2" has forwarding table and has information about "host2" exists on port "1".
 - "host1" tries to send frame to "host2"
-- when "switch1" receives frame from "host1" it broadcasts to other interfaces.
-- when "switch2" receives frame from "switch1", because it has information target host ("host2") exists on the interface where it attached to "switch1", it discards frame
+- when "switch1" receives frame from "host1" it broadcasts to other ports.
+- when "switch2" receives frame from "switch1", because it has information target host ("host2") exists on the port where it attached to "switch1", it discards frame
 - "host2" have to receive frame sent by "host1" and "host3" should not
 
 
