@@ -10,15 +10,7 @@ import (
 	"github.com/zeroFruit/vnet/pkg/arp"
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 type ArpPayloadEncoder struct{}
-=======
-type ArpPayloadEncoder struct {}
->>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
-=======
-type ArpPayloadEncoder struct{}
->>>>>>> dbc75fc... fix: update switch logic, add link layer integration tests
 
 func NewArpPayloadEncoder() *ArpPayloadEncoder {
 	gob.Register(link.Addr(""))
