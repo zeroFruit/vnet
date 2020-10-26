@@ -90,15 +90,15 @@ func testNode(t *testing.T, node *link.Host, addr link.Addr, cost uint) {
 	if link1_ == nil {
 		t.Fatalf("link not exist on interface with address: %s", intf1_.Address())
 	}
-	otherLink, err := link1_.GetOtherInterface(intf1_.Address())
+	otherLink, err := link1_.Opposite(intf1_.Id())
 	if err != nil {
 		t.Fatalf("otherLink not exist: %v", err)
 	}
-	originLink, err := link1_.GetOtherInterface(otherLink.Address())
+	originLink, err := link1_.Opposite(otherLink.Id())
 	if err != nil {
 		t.Fatalf("link1_ not exist: %v", err)
 	}
-	if !originLink.Address().Equal(intf1_.Address()) {
+	if !originLink.Id().Equal(intf1_.Id()) {
 		t.Fatalf("address is not equal")
 	}
 	if link1_.GetCost() != cost {

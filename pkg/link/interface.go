@@ -11,10 +11,13 @@ import (
 	"github.com/zeroFruit/vnet/pkg/link/na"
 )
 
+type Transmitter interface {
+	Transmit(frame []byte) error
+}
+
 type Interface interface {
-	GetLink() *Link
-	AttachLink(link *Link) error
-	Send(frame []byte) error
+	Transmitter
+	EndPoint
 	Address() types.HwAddr
 }
 
@@ -24,7 +27,7 @@ type FrameDataHandler interface {
 	handle(frame *na.FrameData) error
 }
 
-type UDPBasedInterface struct {
+type NetworkAdapter struct {
 	internalIP   internal.Addr
 	internalPort int
 	Addr         types.HwAddr
@@ -34,8 +37,8 @@ type UDPBasedInterface struct {
 	quit         chan struct{}
 }
 
-func NewInterface(port int, hwAddr types.HwAddr, handler FrameDataHandler) *UDPBasedInterface {
-	itf := &UDPBasedInterface{
+func NewInterface(port int, hwAddr types.HwAddr, handler FrameDataHandler) *NetworkAdapter {
+	itf := &NetworkAdapter{
 		internalPort: port,
 		internalIP:   internal.DefaultAddr,
 		Addr:         hwAddr,
@@ -45,15 +48,15 @@ func NewInterface(port int, hwAddr types.HwAddr, handler FrameDataHandler) *UDPB
 	return itf
 }
 
-func (i *UDPBasedInterface) GetLink() *Link {
+func (i *NetworkAdapter) GetLink() *Link {
 	return i.link
 }
 
-func (i *UDPBasedInterface) AttachLink(link *Link) error {
+func (i *NetworkAdapter) AttachLink(link *Link) error {
 	if i.link != nil {
 		return errors.New("link already exist")
 	}
-	if err := link.SetInterface(i); err != nil {
+	if err := link.AttachEndpoint(i); err != nil {
 		return err
 	}
 	adapter, err := na.New(i.internalIP, i.internalPort)
@@ -66,8 +69,8 @@ func (i *UDPBasedInterface) AttachLink(link *Link) error {
 	return nil
 }
 
-func (i *UDPBasedInterface) Send(frame []byte) error {
-	receiver, err := i.link.GetOtherInterface(i.Addr)
+func (i *NetworkAdapter) Transmit(frame []byte) error {
+	receiver, err := i.link.Opposite(i.Id())
 	if err != nil {
 		return err
 	}
@@ -75,7 +78,7 @@ func (i *UDPBasedInterface) Send(frame []byte) error {
 	return nil
 }
 
-func (i *UDPBasedInterface) sink() {
+func (i *NetworkAdapter) sink() {
 	for {
 		select {
 		case data := <-i.adapter.Recv():
@@ -89,14 +92,18 @@ func (i *UDPBasedInterface) sink() {
 	}
 }
 
-func (i *UDPBasedInterface) Address() types.HwAddr {
+func (i *NetworkAdapter) Address() types.HwAddr {
 	return i.Addr
 }
 
-func (i *UDPBasedInterface) InternalAddress() Addr {
+func (i *NetworkAdapter) Id() Id {
+	return Id(i.Addr.String())
+}
+
+func (i *NetworkAdapter) InternalAddress() Addr {
 	return Addr(string(i.internalIP) + ":" + strconv.Itoa(i.internalPort))
 }
 
-func (i *UDPBasedInterface) shutdown() {
+func (i *NetworkAdapter) shutdown() {
 	i.quit <- struct{}{}
 }
