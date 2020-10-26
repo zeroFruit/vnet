@@ -37,15 +37,7 @@ func (i *Interface) Transmit(pkt []byte) error {
 }
 
 type Node struct {
-<<<<<<< HEAD
-<<<<<<< HEAD
 	hw      *link.Host
-=======
-	hw      *link.Node
->>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
-=======
-	hw      *link.Host
->>>>>>> b68f761... fix: add comments to link package
 	ItfList []*Interface // TODO: need to be removed?
 	arp     arp.Service
 	plDec   arp.PayloadDecoder
@@ -120,23 +112,8 @@ func (n *Node) RegisterArp(arp arp.Service) {
 	n.arp = arp
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 func (n *Node) Handle(pl []byte) {
 	payload, err := n.plDec.Decode(pl)
-=======
-func (n *Node) Handle(data *na.Datagram) {
-	payload, err := n.decoder.Decode(data.Buf)
->>>>>>> 5ca1354... feat: implement Switch basic functions
-=======
-func (n *Node) Handle(frame na.Frame) {
-	payload, err := n.plDec.Decode(frame.Payload)
->>>>>>> c752f79... fix: replace Datagram into Frame, fix switch core logic
-=======
-func (n *Node) Handle(pl []byte) {
-	payload, err := n.plDec.Decode(pl)
->>>>>>> dbc75fc... fix: update switch logic, add link layer integration tests
 	if err == nil {
 		if err := n.handleArp(payload); err != nil {
 			log.Fatalf("failed to handle ARP packet: %v", err)
