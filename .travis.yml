@@ -35,9 +35,3 @@ jobs:
         if [ $? -ne 0 ]; then
           exit 1
         fi
-    - stage: e2e
-      script: |
-        ./test/test_runner.sh true
-        if [ $? -ne 0 ]; then
-          exit 1
-        fi
